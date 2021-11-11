@@ -37,16 +37,22 @@ func GenerateMap():
 			add_child(tile)
 			tile.position = Vector2(j * TILE_SIZE, i * TILE_SIZE)
 			map[i][j] = tile
-	
-func is_valid_position(position):
-	return !(position.x < 0 || position.x >= (TILES_ON_HORIZONTAL * TILE_SIZE) || position.y < 0 || position.y >= (TILES_ON_VERTICAL * TILE_SIZE))
-	
 
 # ===================================================================================================
 # ===================================================================================================
 # AUXILIARY FUNCTIONS
 # ===================================================================================================
 # ===================================================================================================
+func is_valid_position(position):
+	print(position)
+	var arrayPositionX = position.x / TILE_SIZE
+	var arrayPositionY = position.y / TILE_SIZE
+	print(Vector2(arrayPositionX, arrayPositionY))
+	var tile = map[arrayPositionY][arrayPositionX]
+	print(tile.is_passable)
+	return IsInBounds(arrayPositionX, arrayPositionY) && tile.is_passable
+	# return !(position.x < 0 || position.x >= (TILES_ON_HORIZONTAL * TILE_SIZE) || position.y < 0 || position.y >= (TILES_ON_VERTICAL * TILE_SIZE))
+	
 func IsInBounds(x, y):
 	return x > 0 && y > 0 && x < TILES_ON_HORIZONTAL - 1 && y < TILES_ON_VERTICAL - 1
 	

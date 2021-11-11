@@ -30,4 +30,5 @@ func _process(delta):
 		movementDirection.y = -amount_to_move
 	
 	var newPosition = self.position + movementDirection;
-	MoveTo(newPosition)
+	if(newPosition != self.position):
+		MoveTo(newPosition)
