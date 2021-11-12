@@ -12,7 +12,19 @@ var rng = RandomNumberGenerator.new()
 
 # loading tile scene "object"
 var tileObject = load("res://Scenes/Tile.tscn")
+var birdMonsterObject = load("res://Scenes/Bird.tscn")
+var snakeMonsterObject = load("res://Scenes/Snake.tscn")
+var tankMonsterObject = load("res://Scenes/Tank.tscn")
+var eaterMonsterObject = load("res://Scenes/Eater.tscn")
+var jesterMonsterObject = load("res://Scenes/Jester.tscn")
 onready var _playerReference = $Player
+
+# ===============================================
+# gameplay related variables
+var level = 1
+var numMonsters = 0
+var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+var monstersOnScene = Array()
 
 func _ready():
 	rng.randomize()
@@ -34,6 +46,8 @@ func _ready():
 		print("timed out!")
 		
 	_playerReference.MoveTo(GetARandomPassableTile().position)
+	# todo: generate monsters
+	GenerateMonsters()
 
 func CreateMapArray():
 	map.resize(TILES_ON_VERTICAL)
@@ -94,10 +108,13 @@ func GetPassableAdjacentNeighbors(x, y):
 	var Neighbors = GetAdjacentNeighbors(x, y)
 
 	for tile in Neighbors:
-		if tile.is_passable:
+		if tile.is_passable && tile._monsterOnTile == null:
 			passableTiles.append(tile)
 			
 	return passableTiles
+	
+func GetPassableAdjacentNeighborsFromTile(tile):
+	return GetPassableAdjacentNeighbors(tile._internal_x, tile._internal_y)
 
 func GetConnectedTiles():
 	var connectedTiles = Array()
@@ -117,18 +134,58 @@ func GetConnectedTiles():
 					frontier.push_back(tile)
 	
 	return connectedTiles
+	
+# ===================================================================================================
+# ===================================================================================================
+# MONSTERS
+# ===================================================================================================
+# ===================================================================================================
+func GenerateMonsters():
+	numMonsters = level + 1
+	for i in numMonsters:
+		SpawnMonster()
+	
+func SpawnMonster():
+	print("spawning monster!")
+	var monster = monsterBag[rng.randi_range(0, monsterBag.size() - 1)]
+	var spawnedMonster = monster.instance()
+	add_child(spawnedMonster)
+	monstersOnScene.append(spawnedMonster)
+	spawnedMonster.MoveTo(GetARandomPassableTile().position)
+	# spawnedMonster.position = GetARandomPassableTile().position
+	
+func GetTileMonsterIsAt(monster):
+	return GetTileFromWorldPosition(monster.position)
+	
+func GetPlayerTile():
+	return GetTileFromWorldPosition(_playerReference.position)
 
 # ===================================================================================================
 # ===================================================================================================
 # AUXILIARY FUNCTIONS
 # ===================================================================================================
 # ===================================================================================================
-func is_valid_position(position):
+func GetTileFromWorldPosition(position):
 	var arrayPositionX = position.x / TILE_SIZE
 	var arrayPositionY = position.y / TILE_SIZE
 	var tile = map[arrayPositionY][arrayPositionX]
-	return IsInBounds(arrayPositionX, arrayPositionY) && tile.is_passable
-	# return !(position.x < 0 || position.x >= (TILES_ON_HORIZONTAL * TILE_SIZE) || position.y < 0 || position.y >= (TILES_ON_VERTICAL * TILE_SIZE))
+	return tile
+	
+func is_valid_position(position):
+	var arrayPositionX = position.x / TILE_SIZE
+	var arrayPositionY = position.y / TILE_SIZE
+	var tile = GetTileFromWorldPosition(position)
+	return IsInBounds(arrayPositionX, arrayPositionY) && tile.is_passable && (tile._monsterOnTile == null)
+	
+func MonsterMovedTo(monster, oldPosition, newPosition):
+	var oldTile = GetTileFromWorldPosition(oldPosition)
+	var newTile = GetTileFromWorldPosition(newPosition)
+	oldTile._monsterOnTile = null
+	newTile._monsterOnTile = monster
+	
+	if(monster._is_player):
+		for m in monstersOnScene:
+			m.Update()
 	
 func IsInBounds(x, y):
 	return x > 0 && y > 0 && x < TILES_ON_HORIZONTAL - 1 && y < TILES_ON_VERTICAL - 1
@@ -139,6 +196,9 @@ func GetARandomPassableTile():
 		var x = rng.randi_range(0, TILES_ON_HORIZONTAL - 1)
 		var y = rng.randi_range(0, TILES_ON_VERTICAL - 1)
 		tile = map[y][x]
-		if(tile.is_passable):
+		if(tile.is_passable && tile._monsterOnTile == null):
 			return tile
 	print("[GetARandomPassableTile] timeout!")
+	
+func ManhattanDistance(p1, p2):
+	return abs(p1.x - p2.x) + abs(p1.y - p2.y)

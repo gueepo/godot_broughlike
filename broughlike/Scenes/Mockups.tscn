@@ -121,6 +121,7 @@ playing = true
 [node name="AnimatedSprite" type="AnimatedSprite" parent="tank"]
 position = Vector2( 71, 16 )
 frames = SubResource( 7 )
+frame = 1
 playing = true
 
 [node name="snake" type="Node2D" parent="."]
@@ -129,7 +130,6 @@ position = Vector2( 71, 16 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="snake"]
 position = Vector2( -23, 21 )
 frames = SubResource( 12 )
-frame = 2
 playing = true
 
 [node name="eater" type="Node2D" parent="."]

@@ -3,6 +3,7 @@ extends Node2D
 var is_passable = true
 var _internal_x = 0
 var _internal_y = 0
+var _monsterOnTile = null
 onready var SpriteReference = $Sprite
 
 func _ready():

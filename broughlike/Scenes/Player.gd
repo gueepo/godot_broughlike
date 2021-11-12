@@ -1,20 +1,10 @@
-extends Node
-
-onready var _mainSceneReference = get_node("/root/MainScene")
-var amount_to_move
-onready var _animatedSprite = $AnimatedSprite
-
-# this also has to more global, not only to the player	
-
-func _ready():
-	amount_to_move = _mainSceneReference.TILE_SIZE
-
-func MoveTo(position):
-	# check if new position is valid
-	# #todo: engage in combat will happen here
-	# if position is valid, is passable, and there is no combat, we just move
-	if(_mainSceneReference.is_valid_position(position)):
-		self.position = position
+extends "res://Scenes/Monster_Base.gd"
+	
+func StartMonster():
+	print("initializing player")
+	InitializeMonster(3)
+	_is_player = true
+	
 
 func _process(delta):	
 	var movementDirection = Vector2()
