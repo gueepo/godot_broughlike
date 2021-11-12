@@ -27,6 +27,10 @@ func TakeTurn():
 	pass
 
 func MoveTo(position):
+	# 1. check to see if we will engage in combat
+	if _mainSceneReference.IsThereAMonsterAt(position):
+		_mainSceneReference.HandleCombat(self, position, 1)
+		return
 	# check if new position is valid
 	# #todo: engage in combat will happen here
 	# if position is valid, is passable, and there is no combat, we just move

@@ -23,7 +23,8 @@ onready var _playerReference = $Player
 # gameplay related variables
 var level = 1
 var numMonsters = 0
-var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+var monsterBag = [birdMonsterObject]
+# var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
 
 func _ready():
@@ -108,7 +109,7 @@ func GetPassableAdjacentNeighbors(x, y):
 	var Neighbors = GetAdjacentNeighbors(x, y)
 
 	for tile in Neighbors:
-		if tile.is_passable && tile._monsterOnTile == null:
+		if tile.is_passable:
 			passableTiles.append(tile)
 			
 	return passableTiles
@@ -157,8 +158,40 @@ func SpawnMonster():
 func GetTileMonsterIsAt(monster):
 	return GetTileFromWorldPosition(monster.position)
 	
+func GetMonsterAt(position):
+	var t = GetTileFromWorldPosition(position)
+	return t._monsterOnTile
+	
 func GetPlayerTile():
 	return GetTileFromWorldPosition(_playerReference.position)
+	
+func IsThereAMonsterAt(position):
+	var t = GetTileFromWorldPosition(position)
+	return t._monsterOnTile != null
+	
+func MonsterMovedTo(monster, oldPosition, newPosition):
+	var oldTile = GetTileFromWorldPosition(oldPosition)
+	var newTile = GetTileFromWorldPosition(newPosition)
+	oldTile._monsterOnTile = null
+	newTile._monsterOnTile = monster
+	
+	if(monster._is_player):
+		UpdateAllMonsters()
+	
+func HandleCombat(monsterAttacking, combatPosition, damage):
+	var other = GetMonsterAt(combatPosition)
+	
+	# avoiding so monsters attack themselves
+	if(monsterAttacking._is_player != other._is_player):
+		print(monsterAttacking.name, " deals ", damage, " damage on ", other.name)
+	
+	if(monsterAttacking._is_player):
+		UpdateAllMonsters()
+		
+func UpdateAllMonsters():
+	for m in monstersOnScene:
+			m.Update()
+	
 
 # ===================================================================================================
 # ===================================================================================================
@@ -176,16 +209,6 @@ func is_valid_position(position):
 	var arrayPositionY = position.y / TILE_SIZE
 	var tile = GetTileFromWorldPosition(position)
 	return IsInBounds(arrayPositionX, arrayPositionY) && tile.is_passable && (tile._monsterOnTile == null)
-	
-func MonsterMovedTo(monster, oldPosition, newPosition):
-	var oldTile = GetTileFromWorldPosition(oldPosition)
-	var newTile = GetTileFromWorldPosition(newPosition)
-	oldTile._monsterOnTile = null
-	newTile._monsterOnTile = monster
-	
-	if(monster._is_player):
-		for m in monstersOnScene:
-			m.Update()
 	
 func IsInBounds(x, y):
 	return x > 0 && y > 0 && x < TILES_ON_HORIZONTAL - 1 && y < TILES_ON_VERTICAL - 1
