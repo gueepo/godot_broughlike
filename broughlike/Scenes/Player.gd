@@ -5,7 +5,6 @@ func StartMonster():
 	InitializeMonster(3)
 	_is_player = true
 	
-
 func _process(delta):	
 	var movementDirection = Vector2()
 	if Input.is_action_just_pressed("ui_right"):

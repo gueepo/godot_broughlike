@@ -1,5 +1,7 @@
 extends Node2D
 
+var MAX_HP = 6
+
 onready var _mainSceneReference = get_node("/root/MainScene")
 var amount_to_move
 onready var _animatedSprite = $AnimatedSprite
@@ -7,6 +9,8 @@ var _hp = 0
 var _is_player = false
 var _attacked_this_turn = false
 var _is_stunned = false
+
+onready var hpSprites = [$HP/HP_1, $HP/HP_2, $HP/HP_3, $HP/HP_4, $HP/HP_5, $HP/HP_6]
 
 func _ready():
 	amount_to_move = _mainSceneReference.TILE_SIZE
@@ -65,9 +69,22 @@ func MoveTo(position):
 
 func InitializeMonster(hp):
 	_hp = hp
+	UpdateHealth()
 	
 func DealDamage(damage):
 	_hp -= damage
+	UpdateHealth()
 	
 func Heal(healAmount):
-	_hp += healAmount
+	if(_hp + healAmount > MAX_HP):
+		_hp = MAX_HP
+	else:
+		_hp += healAmount
+	UpdateHealth()
+	
+func UpdateHealth():
+	for i in range(_hp):
+		hpSprites[i].visible = true
+		
+	for i in range(_hp, MAX_HP):
+		hpSprites[i].visible = false
