@@ -18,10 +18,13 @@ var tankMonsterObject = load("res://Scenes/Tank.tscn")
 var eaterMonsterObject = load("res://Scenes/Eater.tscn")
 var jesterMonsterObject = load("res://Scenes/Jester.tscn")
 onready var _playerReference = $Player
+onready var _exitPortal = $ExitPortal
 
 # ===============================================
 # gameplay related variables
 var level = 1
+var _spawnCounter = 0
+var _spawnRate = 0
 var numMonsters = 0
 var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
@@ -29,6 +32,13 @@ var monstersOnScene = Array()
 func _ready():
 	rng.randomize()
 	CreateMapArray()
+	StartLevel(3)
+
+func StartLevel(playerHp):
+	_playerReference.SetHp(playerHp)
+	_playerReference.UpdateHealth()
+	_spawnRate = 15
+	_spawnCounter = _spawnRate
 	GenerateMap()
 	
 	# validate generated map
@@ -44,8 +54,14 @@ func _ready():
 	print("attempts: ", attempts)
 	if attempts == 100:
 		print("timed out!")
-		
-	_playerReference.MoveTo(GetARandomPassableTile().position)
+	
+	var PlayerPosition = GetARandomPassableTile().position
+	var ExitPortalPosition = GetARandomPassableTile().position
+	while ExitPortalPosition == PlayerPosition:
+		ExitPortalPosition = GetARandomPassableTile().position
+	 
+	_playerReference.MoveTo(PlayerPosition)
+	_exitPortal.position = ExitPortalPosition
 	# todo: generate monsters
 	GenerateMonsters()
 
@@ -72,6 +88,26 @@ func GenerateMap():
 			tile.position = Vector2(j * TILE_SIZE, i * TILE_SIZE)
 			map[i][j] = tile
 			
+func CleanMap():
+	for i in range(TILES_ON_VERTICAL):
+		for j in range(TILES_ON_HORIZONTAL):
+			map[i][j].queue_free()
+
+# This is called when the player steps on the exit portal
+func LevelUp():
+	level += 1
+	if(level >= 6):
+		print("YOU WON!")
+	
+	
+	print("level up")
+	for i in range(monstersOnScene.size()):
+		monstersOnScene[i].queue_free()
+	monstersOnScene.clear()
+	CleanMap()
+	
+	StartLevel(3 + (level - 1))
+
 # ===================================================================================================
 # ===================================================================================================
 # MAP VALIDATION FUNCTIONS
@@ -156,13 +192,15 @@ func GenerateMonsters():
 		SpawnMonster()
 	
 func SpawnMonster():
-	print("spawning monster!")
 	var monster = monsterBag[rng.randi_range(0, monsterBag.size() - 1)]
 	var spawnedMonster = monster.instance()
 	add_child(spawnedMonster)
 	monstersOnScene.append(spawnedMonster)
-	spawnedMonster.MoveTo(GetARandomPassableTile().position)
-	# spawnedMonster.position = GetARandomPassableTile().position
+	var MonsterPosition = GetARandomPassableTile().position
+	while IsThereAMonsterAt(MonsterPosition):
+		MonsterPosition = GetARandomPassableTile().position
+	
+	spawnedMonster.MoveTo(MonsterPosition)
 	
 func GetTileMonsterIsAt(monster):
 	return GetTileFromWorldPosition(monster.position)
@@ -212,11 +250,18 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	if(monsterAttacking._is_player):
 		other._is_stunned = true
 		UpdateAllMonsters()
-		
+
+#
 func UpdateAllMonsters():
 	for m in monstersOnScene:
 		if m != null:
 			m.Update()
+	
+	_spawnCounter -= 1
+	if(_spawnCounter <= 0):
+		SpawnMonster()
+		_spawnCounter = _spawnRate
+		_spawnRate -= 1
 	
 
 # ===================================================================================================

@@ -5,10 +5,12 @@ var MAX_HP = 6
 onready var _mainSceneReference = get_node("/root/MainScene")
 var amount_to_move
 onready var _animatedSprite = $AnimatedSprite
+onready var _portalSprite = $Portal
 var _hp = 0
 var _is_player = false
 var _attacked_this_turn = false
 var _is_stunned = false
+var _teleportCounter = 2
 
 onready var hpSprites = [$HP/HP_1, $HP/HP_2, $HP/HP_3, $HP/HP_4, $HP/HP_5, $HP/HP_6]
 
@@ -17,7 +19,11 @@ func _ready():
 	_animatedSprite.z_index = 5
 	_animatedSprite.position = Vector2(8, 8)
 	_animatedSprite.playing = true
+	_portalSprite.z_index = 5
+	_portalSprite.position = Vector2(8, 8)
+	_portalSprite.playing = true
 	StartMonster()
+	UpdatePortalVisibility()
 	
 func GetMyTile():
 	return _mainSceneReference.GetTileMonsterIsAt(self)
@@ -26,12 +32,22 @@ func StartMonster():
 	pass
 	
 func Update():
-	if(_is_stunned):
+	if(_is_stunned || _teleportCounter > 0):
+		_teleportCounter -= 1
+		UpdatePortalVisibility()
 		_is_stunned = false
 		return
 		
 	_attacked_this_turn = false
 	TakeTurn()
+	
+func UpdatePortalVisibility():
+	if(_teleportCounter > 0):
+		_portalSprite.visible = true
+		_animatedSprite.visible = false
+	else:
+		_portalSprite.visible = false
+		_animatedSprite.visible = true
 	
 func TakeTurn():	
 	var myTile = GetMyTile()
@@ -59,17 +75,26 @@ func MoveTo(position):
 		_attacked_this_turn = true
 		_mainSceneReference.HandleCombat(self, position, 1)
 		return
+		
 	# check if new position is valid
-	# #todo: engage in combat will happen here
 	# if position is valid, is passable, and there is no combat, we just move
 	if(_mainSceneReference.is_valid_position(position)):
 		var oldPosition = self.position
 		self.position = position
 		_mainSceneReference.MonsterMovedTo(self, oldPosition, position)
+		
+		# check if it is portal
+		if(self._is_player):
+			if (_mainSceneReference._exitPortal.position == position):
+				_mainSceneReference.LevelUp();
+				return
 
 func InitializeMonster(hp):
 	_hp = hp
 	UpdateHealth()
+	
+func SetHp(hp):
+	_hp = min(hp, MAX_HP)
 	
 func DealDamage(damage):
 	_hp -= damage
