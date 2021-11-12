@@ -14,3 +14,6 @@ func UpdatePassable(value):
 	is_passable = value
 	var rect_x_position = 32 if is_passable else 48
 	SpriteReference.region_rect = Rect2(Vector2(rect_x_position, 0), Vector2(16, 16))
+	
+func Eat():
+	UpdatePassable(true)

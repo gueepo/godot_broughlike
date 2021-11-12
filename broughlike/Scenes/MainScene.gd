@@ -23,8 +23,7 @@ onready var _playerReference = $Player
 # gameplay related variables
 var level = 1
 var numMonsters = 0
-var monsterBag = [birdMonsterObject]
-# var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
 
 func _ready():
@@ -111,8 +110,18 @@ func GetPassableAdjacentNeighbors(x, y):
 	for tile in Neighbors:
 		if tile.is_passable:
 			passableTiles.append(tile)
-			
+	
 	return passableTiles
+	
+func GetAdjacentWalls(tile):
+	var walls = Array()
+	var neighbors = GetAdjacentNeighbors(tile._internal_x, tile._internal_y)
+	
+	for tile in neighbors:
+		if !tile.is_passable:
+			walls.append(tile)
+			
+	return walls
 	
 func GetPassableAdjacentNeighborsFromTile(tile):
 	return GetPassableAdjacentNeighbors(tile._internal_x, tile._internal_y)
@@ -177,6 +186,18 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	
 	if(monster._is_player):
 		UpdateAllMonsters()
+		
+func DestroyMonster(monster):
+	if monster._is_player:
+		print("#todo: GAME OVER!")
+	
+	var tile = GetTileMonsterIsAt(monster)
+	tile._monsterOnTile = null
+	
+	var index = monstersOnScene.find(monster)
+	if index != -1:
+		monstersOnScene.remove(index)
+	monster.queue_free()
 	
 func HandleCombat(monsterAttacking, combatPosition, damage):
 	var other = GetMonsterAt(combatPosition)
@@ -184,12 +205,17 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
 		print(monsterAttacking.name, " deals ", damage, " damage on ", other.name)
+		other.DealDamage(1)
+		if(other._hp <= 0):
+			DestroyMonster(other)
 	
 	if(monsterAttacking._is_player):
+		other._is_stunned = true
 		UpdateAllMonsters()
 		
 func UpdateAllMonsters():
 	for m in monstersOnScene:
+		if m != null:
 			m.Update()
 	
 

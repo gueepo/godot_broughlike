@@ -5,5 +5,7 @@ func StartMonster():
 	InitializeMonster(1)
 
 func TakeTurn():
-	print("snake is taking a turn!")
-	pass
+	.TakeTurn()
+	
+	if(!_attacked_this_turn):
+		.TakeTurn()

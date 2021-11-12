@@ -5,5 +5,7 @@ func StartMonster():
 	InitializeMonster(3)
 
 func TakeTurn():
-	print("tank is taking a turn!")
-	pass
+	var startStunned = _is_stunned
+	.TakeTurn()
+	if(!startStunned):
+		_is_stunned = true

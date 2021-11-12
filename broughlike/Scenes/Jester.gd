@@ -5,5 +5,7 @@ func StartMonster():
 	InitializeMonster(2)
 
 func TakeTurn():
-	print("jester is taking a turn!")
-	pass
+	var tile = GetMyTile()
+	var adjacentTiles = _mainSceneReference.GetPassableAdjacentNeighborsFromTile(tile)
+	adjacentTiles.shuffle()
+	MoveTo(adjacentTiles[0].position)

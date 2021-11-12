@@ -5,6 +5,8 @@ var amount_to_move
 onready var _animatedSprite = $AnimatedSprite
 var _hp = 0
 var _is_player = false
+var _attacked_this_turn = false
+var _is_stunned = false
 
 func _ready():
 	amount_to_move = _mainSceneReference.TILE_SIZE
@@ -20,15 +22,37 @@ func StartMonster():
 	pass
 	
 func Update():
+	if(_is_stunned):
+		_is_stunned = false
+		return
+		
+	_attacked_this_turn = false
 	TakeTurn()
-	pass
 	
-func TakeTurn():
-	pass
+func TakeTurn():	
+	var myTile = GetMyTile()
+	var playerTile = _mainSceneReference.GetPlayerTile()
+	var adjacentTiles = _mainSceneReference.GetPassableAdjacentNeighborsFromTile(myTile)
+	if(adjacentTiles.size() == 0):
+		return
+	
+	# print("bird: mytile ", myTile, " - playerTile: ", playerTile, " - adjacent tiles: ", adjacentTiles)
+	
+	# go over adjacent tiles and move to the closest towards the player
+	var distance = _mainSceneReference.ManhattanDistance(playerTile.position, adjacentTiles[0].position)
+	var positionToMove = adjacentTiles[0].position
+	for i in range(1, adjacentTiles.size()):
+		var newDistance = _mainSceneReference.ManhattanDistance(playerTile.position, adjacentTiles[i].position)
+		if(newDistance < distance):
+			distance = newDistance
+			positionToMove = adjacentTiles[i].position
+	
+	MoveTo(positionToMove)
 
 func MoveTo(position):
 	# 1. check to see if we will engage in combat
 	if _mainSceneReference.IsThereAMonsterAt(position):
+		_attacked_this_turn = true
 		_mainSceneReference.HandleCombat(self, position, 1)
 		return
 	# check if new position is valid
@@ -41,3 +65,9 @@ func MoveTo(position):
 
 func InitializeMonster(hp):
 	_hp = hp
+	
+func DealDamage(damage):
+	_hp -= damage
+	
+func Heal(healAmount):
+	_hp += healAmount
