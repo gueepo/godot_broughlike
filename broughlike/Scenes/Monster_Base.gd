@@ -53,10 +53,10 @@ func Update():
 func UpdatePortalVisibility():
 	if(_teleportCounter > 0):
 		_portalSprite.visible = true
-		# _animatedSprite.visible = false
+		_animatedSprite.visible = false
 	else:
 		_portalSprite.visible = false
-		# _animatedSprite.visible = true
+		_animatedSprite.visible = true
 	
 func TakeTurn():	
 	var myTile = GetMyTile()
@@ -64,8 +64,7 @@ func TakeTurn():
 	var adjacentTiles = _mainSceneReference.GetPassableAdjacentNeighborsFromTile(myTile)
 	if(adjacentTiles.size() == 0):
 		return
-	
-	# print("bird: mytile ", myTile, " - playerTile: ", playerTile, " - adjacent tiles: ", adjacentTiles)
+
 	
 	# go over adjacent tiles and move to the closest towards the player
 	var distance = _mainSceneReference.ManhattanDistance(playerTile.position, adjacentTiles[0].position)
