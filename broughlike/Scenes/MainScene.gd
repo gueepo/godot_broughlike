@@ -51,7 +51,7 @@ func StartLevel(playerHp):
 		else:
 			GenerateMap()
 	
-	print("attempts: ", attempts)
+	print("map generation attempts: ", attempts)
 	if attempts == 100:
 		print("timed out!")
 	
@@ -64,13 +64,15 @@ func StartLevel(playerHp):
 	_exitPortal.position = ExitPortalPosition
 	# todo: generate monsters
 	GenerateMonsters()
-
+ 
+# correctly create and resize the arrays for the map
 func CreateMapArray():
 	map.resize(TILES_ON_VERTICAL)
 	for i in range(TILES_ON_VERTICAL):
 		map[i] = Array()
 		map[i].resize(TILES_ON_HORIZONTAL)
 
+# generate map and creates each individual node
 func GenerateMap():
 	passableTiles = 0
 	for i in range(TILES_ON_VERTICAL):
@@ -87,7 +89,8 @@ func GenerateMap():
 			add_child(tile)
 			tile.position = Vector2(j * TILE_SIZE, i * TILE_SIZE)
 			map[i][j] = tile
-			
+
+# deletes all tile nodes
 func CleanMap():
 	for i in range(TILES_ON_VERTICAL):
 		for j in range(TILES_ON_HORIZONTAL):
@@ -99,8 +102,6 @@ func LevelUp():
 	if(level >= 6):
 		print("YOU WON!")
 	
-	
-	print("level up")
 	for i in range(monstersOnScene.size()):
 		monstersOnScene[i].queue_free()
 	monstersOnScene.clear()
@@ -110,14 +111,16 @@ func LevelUp():
 
 # ===================================================================================================
 # ===================================================================================================
-# MAP VALIDATION FUNCTIONS
+# MAP RELATED FUNCTIONS
 # ===================================================================================================
 # ===================================================================================================
+# returns the neighbor tile from the given position in the given direction
 func GetTileNeighbor(x, y, dx, dy):
 	if IsInBounds(x + dx, y + dy):
 		return map[y+dy][x+dx]
 	return null
-	
+
+# gets all adjacent neighbors of the tile on the given position
 func GetAdjacentNeighbors(x, y):
 	var adjacentTiles = Array()
 	var leftTile = GetTileNeighbor(x, y, -1, 0)
@@ -162,6 +165,7 @@ func GetAdjacentWalls(tile):
 func GetPassableAdjacentNeighborsFromTile(tile):
 	return GetPassableAdjacentNeighbors(tile._internal_x, tile._internal_y)
 
+# use a flood-fill approach to try to connect all tiles
 func GetConnectedTiles():
 	var connectedTiles = Array()
 	var frontier = Array()
@@ -190,7 +194,8 @@ func GenerateMonsters():
 	numMonsters = level + 1
 	for i in numMonsters:
 		SpawnMonster()
-	
+
+# spawn a monster on a random passable tile
 func SpawnMonster():
 	var monster = monsterBag[rng.randi_range(0, monsterBag.size() - 1)]
 	var spawnedMonster = monster.instance()
@@ -201,14 +206,14 @@ func SpawnMonster():
 		MonsterPosition = GetARandomPassableTile().position
 	
 	spawnedMonster.MoveTo(MonsterPosition)
-	
+
 func GetTileMonsterIsAt(monster):
 	return GetTileFromWorldPosition(monster.position)
-	
+
 func GetMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
 	return t._monsterOnTile
-	
+
 func GetPlayerTile():
 	return GetTileFromWorldPosition(_playerReference.position)
 	
@@ -216,6 +221,7 @@ func IsThereAMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
 	return t._monsterOnTile != null
 	
+# update tiles when a monster moves from/to somewhere
 func MonsterMovedTo(monster, oldPosition, newPosition):
 	var oldTile = GetTileFromWorldPosition(oldPosition)
 	var newTile = GetTileFromWorldPosition(newPosition)
@@ -224,7 +230,8 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	
 	if(monster._is_player):
 		UpdateAllMonsters()
-		
+
+# destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
 	if monster._is_player:
 		print("#todo: GAME OVER!")
@@ -242,7 +249,6 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
-		print(monsterAttacking.name, " deals ", damage, " damage on ", other.name)
 		other.DealDamage(1)
 		if(other._hp <= 0):
 			DestroyMonster(other)
@@ -251,7 +257,7 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		other._is_stunned = true
 		UpdateAllMonsters()
 
-#
+# let the monsters take their turns after player took their turn
 func UpdateAllMonsters():
 	for m in monstersOnScene:
 		if m != null:
@@ -292,7 +298,6 @@ func GetARandomPassableTile():
 		tile = map[y][x]
 		if(tile.is_passable && tile._monsterOnTile == null):
 			return tile
-	print("[GetARandomPassableTile] timeout!")
 	
 func ManhattanDistance(p1, p2):
 	return abs(p1.x - p2.x) + abs(p1.y - p2.y)
