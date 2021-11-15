@@ -23,6 +23,15 @@ var jesterMonsterObject = load("res://Scenes/Jester.tscn")
 onready var _playerReference = $Player
 onready var _exitPortal = $ExitPortal
 
+# music/audio
+onready var _sfxPlayer = $SoundEffects
+var gameoverSfx = load("res://assets/audio/gameover.wav")
+var hit1Sfx = load("res://assets/audio/hit1.wav")
+var hit2Sfx = load("res://assets/audio/hit2.wav")
+var newLevelSfx = load("res://assets/audio/newLevel.wav")
+var spellSfx = load("res://assets/audio/spell.wav")
+var treasureSfx = load("res://assets/audio/treasure.wav")
+
 # ===============================================
 # gameplay related variables
 var level = 1
@@ -111,7 +120,7 @@ func CleanMap():
 			map[i][j].queue_free()
 
 # This is called when the player steps on the exit portal
-func LevelUp():
+func LevelUp():	
 	level += 1
 	if(level >= 6):
 		print("YOU WON!")
@@ -122,6 +131,9 @@ func LevelUp():
 	CleanMap()
 	
 	StartLevel(3 + (level - 1))
+	
+	_sfxPlayer.stream = newLevelSfx
+	_sfxPlayer.play()
 
 # ===================================================================================================
 # ===================================================================================================
@@ -249,13 +261,16 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 		
 		# get treasure
 		if(newTile._hasTreasure == true):
-			# todo:audio
+			_sfxPlayer.stream = treasureSfx
+			_sfxPlayer.play()
 			_playerScore += 1
 			newTile._hasTreasure = false
 
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
 	if monster._is_player:
+		_sfxPlayer.stream = gameoverSfx
+		_sfxPlayer.play()
 		print("#todo: GAME OVER!")
 		print("score: ", _playerScore)
 	
@@ -282,6 +297,12 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
 		other.DealDamage(1)
+		
+		if rng.randf() < 0.5:
+			_sfxPlayer.stream = hit1Sfx
+		else:
+			_sfxPlayer.stream = hit2Sfx
+		_sfxPlayer.play()
 		_shakeAmount = 10
 		
 		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
