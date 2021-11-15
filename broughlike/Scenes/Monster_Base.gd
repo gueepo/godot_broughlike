@@ -17,6 +17,9 @@ var _is_stunned = false
 var _teleportCounter = 2
 var _amount_to_move
 
+var _actual_position_x = 0
+var _actual_position_y = 0
+
 
 func _ready():
 	_amount_to_move = _mainSceneReference.TILE_SIZE
@@ -65,7 +68,6 @@ func TakeTurn():
 	if(adjacentTiles.size() == 0):
 		return
 
-	
 	# go over adjacent tiles and move to the closest towards the player
 	var distance = _mainSceneReference.ManhattanDistance(playerTile.position, adjacentTiles[0].position)
 	var positionToMove = adjacentTiles[0].position
@@ -77,7 +79,7 @@ func TakeTurn():
 	
 	MoveTo(positionToMove)
 
-func MoveTo(position):
+func MoveTo(position):	
 	# 1. check to see if we will engage in combat
 	if _mainSceneReference.IsThereAMonsterAt(position):
 		_attacked_this_turn = true
@@ -87,9 +89,16 @@ func MoveTo(position):
 	# check if new position is valid
 	# if position is valid, is passable, and there is no combat, we just move
 	if(_mainSceneReference.is_valid_position(position)):
+		var tween = get_node("Tween")
 		var oldPosition = self.position
-		self.position = position
 		_mainSceneReference.MonsterMovedTo(self, oldPosition, position)
+		
+		_actual_position_x = position.x
+		_actual_position_y = position.y
+		
+		tween.interpolate_property(self, "position", oldPosition, position, 0.075, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
+		tween.start()
+		yield(tween, "tween_completed")
 		
 		# check if it is portal
 		if(self._is_player):

@@ -31,9 +31,10 @@ animations = [ {
 [node name="Monster" instance=ExtResource( 1 )]
 script = ExtResource( 3 )
 
-[node name="AnimatedSprite" parent="." index="0"]
-position = Vector2( 8, 8 )
+[node name="Portal" parent="." index="0"]
+frame = 0
+
+[node name="AnimatedSprite" parent="." index="1"]
 z_index = 5
 frames = SubResource( 5 )
-frame = 3
 playing = true

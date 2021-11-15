@@ -6,12 +6,15 @@ var TILE_SIZE = 16
 var map = Array()
 var passableTiles = 0
 var rng = RandomNumberGenerator.new()
+var NUMBER_OF_TREASURE = 2
 
 # what is the main scene going to do?
 # 1. generate the map
 
 # loading tile scene "object"
 var tileObject = load("res://Scenes/Tile.tscn")
+var treasureObject = load("res://Scenes/Treasure.tscn")
+
 var birdMonsterObject = load("res://Scenes/Bird.tscn")
 var snakeMonsterObject = load("res://Scenes/Snake.tscn")
 var tankMonsterObject = load("res://Scenes/Tank.tscn")
@@ -23,10 +26,12 @@ onready var _exitPortal = $ExitPortal
 # ===============================================
 # gameplay related variables
 var level = 1
+var _playerScore = 0
 var _spawnCounter = 0
 var _spawnRate = 0
 var numMonsters = 0
-var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+# var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+var monsterBag = [snakeMonsterObject]
 var monstersOnScene = Array()
 
 func _ready():
@@ -64,6 +69,7 @@ func StartLevel(playerHp):
 	_exitPortal.position = ExitPortalPosition
 	# todo: generate monsters
 	GenerateMonsters()
+	GenerateTreasures()
  
 # correctly create and resize the arrays for the map
 func CreateMapArray():
@@ -207,15 +213,17 @@ func SpawnMonster():
 	
 	spawnedMonster.MoveTo(MonsterPosition)
 
+# THIS FUNCTION IS WRONG!
+# because when we add tween "monster.position" is not always the true position
 func GetTileMonsterIsAt(monster):
-	return GetTileFromWorldPosition(monster.position)
+	return GetTileFromWorldPosition(Vector2(monster._actual_position_x, monster._actual_position_y))
 
 func GetMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
 	return t._monsterOnTile
 
 func GetPlayerTile():
-	return GetTileFromWorldPosition(_playerReference.position)
+	return GetTileFromWorldPosition(Vector2(_playerReference._actual_position_x, _playerReference._actual_position_y))
 	
 func IsThereAMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
@@ -230,13 +238,22 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	
 	if(monster._is_player):
 		UpdateAllMonsters()
+		
+		# get treasure
+		if(newTile._hasTreasure == true):
+			# todo:audio
+			_playerScore += 1
+			newTile._hasTreasure = false
 
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
 	if monster._is_player:
 		print("#todo: GAME OVER!")
+		print("score: ", _playerScore)
 	
 	var tile = GetTileMonsterIsAt(monster)
+	if(tile.position != monster.position):
+		print("tile position and monster position are different - ruh-roh")
 	tile._monsterOnTile = null
 	
 	var index = monstersOnScene.find(monster)
@@ -247,9 +264,23 @@ func DestroyMonster(monster):
 func HandleCombat(monsterAttacking, combatPosition, damage):
 	var other = GetMonsterAt(combatPosition)
 	
+	if(other == null):
+		print("monster being attacked is null, is there something wrong?")
+		return
+	
+	var tween = monsterAttacking.get_node("Tween")
+	var StartPosition = monsterAttacking.position
+	
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
 		other.DealDamage(1)
+		
+		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
+		tween.interpolate_property(monsterAttacking, "position", combatPosition, StartPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)	
+		tween.start()
+		yield(tween, "tween_completed")
+		monsterAttacking.position = StartPosition
+		
 		if(other._hp <= 0):
 			DestroyMonster(other)
 	
@@ -269,6 +300,15 @@ func UpdateAllMonsters():
 		_spawnCounter = _spawnRate
 		_spawnRate -= 1
 	
+
+# ===================================================================================================
+# ===================================================================================================
+# TREASURE
+# ===================================================================================================
+# ===================================================================================================
+func GenerateTreasures():
+	for i in range(NUMBER_OF_TREASURE):
+		GetARandomPassableTile()._hasTreasure = true
 
 # ===================================================================================================
 # ===================================================================================================
