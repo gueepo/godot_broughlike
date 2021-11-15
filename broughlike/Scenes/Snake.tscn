@@ -32,9 +32,10 @@ animations = [ {
 script = ExtResource( 3 )
 
 [node name="Portal" parent="." index="0"]
-frame = 0
+frame = 1
 
 [node name="AnimatedSprite" parent="." index="1"]
 z_index = 5
 frames = SubResource( 5 )
+frame = 1
 playing = true

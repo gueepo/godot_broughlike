@@ -30,14 +30,22 @@ var _playerScore = 0
 var _spawnCounter = 0
 var _spawnRate = 0
 var numMonsters = 0
-# var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
-var monsterBag = [snakeMonsterObject]
+var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
+
+# screen shake
+var _shakeAmount = 0
 
 func _ready():
 	rng.randomize()
 	CreateMapArray()
 	StartLevel(3)
+	
+	print("MainScene node is ready!")
+	
+func _process(delta):
+	TickScreenshake()
+	pass
 
 func StartLevel(playerHp):
 	_playerReference.SetHp(playerHp)
@@ -274,6 +282,7 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
 		other.DealDamage(1)
+		_shakeAmount = 10
 		
 		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
 		tween.interpolate_property(monsterAttacking, "position", combatPosition, StartPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)	
@@ -341,3 +350,20 @@ func GetARandomPassableTile():
 	
 func ManhattanDistance(p1, p2):
 	return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
+# ===================================================================================================
+# ===================================================================================================
+# SCREEN SHAKE
+# ===================================================================================================
+# ===================================================================================================
+func TickScreenshake():
+	if _shakeAmount <= 0:
+		self.position = Vector2(0.0, 0.0)
+		return
+	
+	_shakeAmount -= 1
+	var shakeAngle = rng.randf() * PI * 2
+	var _shakeX = (cos(shakeAngle) * _shakeAmount) / 4;
+	var _shakeY = (sin(shakeAngle) * _shakeAmount) / 4;
+	
+	self.position = Vector2(_shakeX, _shakeY)
