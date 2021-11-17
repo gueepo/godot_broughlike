@@ -1,9 +1,11 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scenes/MainScene.gd" type="Script" id=2]
 [ext_resource path="res://Scenes/Portal.tscn" type="PackedScene" id=3]
 [ext_resource path="res://assets/audio/gameover.wav" type="AudioStream" id=4]
+[ext_resource path="res://CustomTheme.tres" type="Theme" id=5]
+[ext_resource path="res://Scenes/SaveFile.tscn" type="PackedScene" id=6]
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource( 2 )
@@ -15,3 +17,38 @@ z_index = 5
 
 [node name="SoundEffects" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 4 )
+
+[node name="UI" type="Control" parent="."]
+margin_left = 144.0
+margin_right = 208.0
+margin_bottom = 144.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LevelLabel" type="RichTextLabel" parent="UI"]
+anchor_right = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = 8.0
+margin_bottom = 26.0
+theme = ExtResource( 5 )
+text = "Level: 1"
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ScoreLabel" type="RichTextLabel" parent="UI"]
+anchor_right = 1.0
+margin_left = 8.0
+margin_top = 26.0
+margin_right = 8.0
+margin_bottom = 48.0
+theme = ExtResource( 5 )
+text = "Score: 0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SaveFile" parent="." instance=ExtResource( 6 )]

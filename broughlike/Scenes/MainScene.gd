@@ -32,6 +32,13 @@ var newLevelSfx = load("res://assets/audio/newLevel.wav")
 var spellSfx = load("res://assets/audio/spell.wav")
 var treasureSfx = load("res://assets/audio/treasure.wav")
 
+# UI-related
+onready var LevelLabel = $UI/LevelLabel
+onready var ScoreLabel = $UI/ScoreLabel 
+
+# saving
+onready var SaveFile = $SaveFile
+
 # ===============================================
 # gameplay related variables
 var level = 1
@@ -49,6 +56,7 @@ func _ready():
 	rng.randomize()
 	CreateMapArray()
 	StartLevel(3)
+	SaveFile.Load()
 	
 	print("MainScene node is ready!")
 	
@@ -87,6 +95,7 @@ func StartLevel(playerHp):
 	# todo: generate monsters
 	GenerateMonsters()
 	GenerateTreasures()
+	UpdateUserInterface()
  
 # correctly create and resize the arrays for the map
 func CreateMapArray():
@@ -123,7 +132,8 @@ func CleanMap():
 func LevelUp():	
 	level += 1
 	if(level >= 6):
-		print("YOU WON!")
+		SaveFile.AddData(_playerScore, true)
+		get_tree().change_scene("res://Scenes/YouWon.tscn")
 	
 	for i in range(monstersOnScene.size()):
 		monstersOnScene[i].queue_free()
@@ -265,15 +275,10 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 			_sfxPlayer.play()
 			_playerScore += 1
 			newTile._hasTreasure = false
+			UpdateUserInterface()
 
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
-	if monster._is_player:
-		_sfxPlayer.stream = gameoverSfx
-		_sfxPlayer.play()
-		print("#todo: GAME OVER!")
-		print("score: ", _playerScore)
-	
 	var tile = GetTileMonsterIsAt(monster)
 	if(tile.position != monster.position):
 		print("tile position and monster position are different - ruh-roh")
@@ -284,10 +289,20 @@ func DestroyMonster(monster):
 		monstersOnScene.remove(index)
 	monster.queue_free()
 	
+	if monster._is_player:
+		_sfxPlayer.stream = gameoverSfx
+		_sfxPlayer.play()
+		print("#todo: GAME OVER!")
+		print("score: ", _playerScore)
+		SaveFile.AddData(_playerScore, false)
+		
+		yield(get_tree().create_timer(2.0),"timeout")
+		get_tree().change_scene("res://Scenes/MainMenu.tscn")
+	
 func HandleCombat(monsterAttacking, combatPosition, damage):
 	var other = GetMonsterAt(combatPosition)
 	
-	if(other == null):
+	if other == null:
 		print("monster being attacked is null, is there something wrong?")
 		return
 	
@@ -388,3 +403,13 @@ func TickScreenshake():
 	var _shakeY = (sin(shakeAngle) * _shakeAmount) / 4;
 	
 	self.position = Vector2(_shakeX, _shakeY)
+
+# ===================================================================================================
+# ===================================================================================================
+# USER INTERFACE
+# ===================================================================================================
+# ===================================================================================================
+func UpdateUserInterface():
+	LevelLabel.text = "Level: " + str(level)
+	ScoreLabel.text = "Score: " + str(_playerScore)
+	
