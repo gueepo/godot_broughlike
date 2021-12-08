@@ -8,6 +8,8 @@ onready var _mainSceneReference = get_node("/root/MainScene")
 onready var _animatedSprite = $AnimatedSprite
 onready var _portalSprite = $Portal
 onready var hpSprites = [$HP/HP_1, $HP/HP_2, $HP/HP_3, $HP/HP_4, $HP/HP_5, $HP/HP_6]
+onready var _spellsRef = $Spells
+var _spellBag = Array()
 
 # internal variables
 var _hp = 0
@@ -129,3 +131,14 @@ func UpdateHealth():
 		
 	for i in range(_hp, MAX_HP):
 		hpSprites[i].visible = false
+
+# #########################
+# SPELL MANAGEMENT
+# #########################
+func UseSpell(index):
+	if index < 0 || index >= _spellBag.size():
+		print("unable to cast spell: " + str(index))
+		return
+	
+	_spellsRef.UseSpell(_spellBag[index])
+	_spellBag.remove(index)

@@ -6,6 +6,9 @@ func StartMonster():
 	_is_player = true
 	_teleportCounter = 0
 	
+	# temp
+	_spellBag.append(1)
+	
 func _process(delta):	
 	var movementDirection = Vector2()
 	if Input.is_action_just_pressed("ui_right"):
@@ -18,6 +21,9 @@ func _process(delta):
 		movementDirection.y = _amount_to_move
 	elif Input.is_action_just_pressed("ui_up"):
 		movementDirection.y = -_amount_to_move
+		
+	if Input.is_action_just_pressed("spell_0"):
+		UseSpell(0)
 	
 	var newPosition = self.position + movementDirection;
 	if(newPosition != self.position):
