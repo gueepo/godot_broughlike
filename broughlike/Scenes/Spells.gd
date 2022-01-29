@@ -8,11 +8,16 @@ const SPELLS = preload("res://Scenes/SpellEnum.gd")
 
 
 func UseSpell(spell):
+	
+	_mainSceneReference.PlaySound(usedSpellSfx)
+	
 	match spell:
 		SPELLS.WOOP:
 			CastWoop()
 		SPELLS.DIG:
 			CastDig()
+		SPELLS.MAELSTROM:
+			CastMaelstrom()
 		_:
 			print("spell not implemented")
 
@@ -23,7 +28,6 @@ func UseSpell(spell):
 func CastWoop():
 	var newTile = _mainSceneReference.GetARandomPassableTile()
 	_parentMonster.MoveToTile(newTile)
-	_mainSceneReference.PlaySound(usedSpellSfx)
 
 # -------------------------------------------
 # DIG: Destroy all walls on map, heals 2 HP.
@@ -39,5 +43,21 @@ func CastDig():
 	
 	# recovering 2 HP
 	_parentMonster.Heal(2)
-	
-	_mainSceneReference.PlaySound(usedSpellSfx)
+
+# -------------------------------------------
+# MAELSTROM: moves all enemies to random valid positions, reset portal counter
+#
+# -------------------------------------------
+func CastMaelstrom():
+	print("casting maelstrom!")
+	# 1. get all monsters
+	var allMonsters = _mainSceneReference.monstersOnScene
+	# 2. move to valid position and reset portal counter
+	for m in _mainSceneReference.monstersOnScene:
+		print("monster: ", m.name)
+		m._is_stunned = true
+		m._teleportCounter = 2
+		var newTile = _mainSceneReference.GetARandomPassableTile()
+		m.MoveToTile(newTile)
+		m.UpdatePortalVisibility()
+		

@@ -5,6 +5,7 @@ func StartMonster():
 	InitializeMonster(3)
 	_is_player = true
 	_teleportCounter = 0
+	_spellBag.append(2)
 	
 func _process(delta):	
 	var movementDirection = Vector2()

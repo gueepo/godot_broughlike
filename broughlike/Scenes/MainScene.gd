@@ -432,6 +432,8 @@ func SpellToString(spell):
 			return "WOOP"
 		SPELLS.DIG:
 			return "DIG"
+		SPELLS.MAELSTROM:
+			return "MAELSTROM"
 		_:
 			return "EMPTY"
 
