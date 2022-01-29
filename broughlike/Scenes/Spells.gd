@@ -3,13 +3,9 @@ extends Node
 onready var _mainSceneReference = get_node("/root/MainScene")
 onready var _parentMonster = get_parent()
 var usedSpellSfx = load("res://assets/audio/spell.wav")
+const SPELLS = preload("res://Scenes/SpellEnum.gd")
 
-enum SPELLS {
-	WOOP = 0, # move the monster to a random valid position
-	DIG = 1, # destroy all walls on map, heals 2 hp
-	
-	MAX = 2 # used when generating random spells
-}
+
 
 func UseSpell(spell):
 	match spell:

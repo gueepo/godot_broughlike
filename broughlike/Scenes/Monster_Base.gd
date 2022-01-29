@@ -145,3 +145,4 @@ func UseSpell(index):
 	
 	_spellsRef.UseSpell(_spellBag[index])
 	_spellBag.remove(index)
+	_mainSceneReference.UpdateUserInterface()

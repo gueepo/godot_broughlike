@@ -51,4 +51,20 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Spells" type="RichTextLabel" parent="UI"]
+margin_left = 8.0
+margin_top = 48.0
+margin_right = 112.0
+margin_bottom = 136.0
+theme = ExtResource( 5 )
+text = "0: WOOP
+1: WOOP
+2: WOOP
+3: WOOP
+4: WOOP
+5: WOOP"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="SaveFile" parent="." instance=ExtResource( 6 )]

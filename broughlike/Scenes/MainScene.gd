@@ -32,6 +32,8 @@ var treasureSfx = load("res://assets/audio/treasure.wav")
 # UI-related
 onready var LevelLabel = $UI/LevelLabel
 onready var ScoreLabel = $UI/ScoreLabel 
+onready var SpellLabel = $UI/Spells
+const SPELLS = preload("res://Scenes/SpellEnum.gd")
 
 # saving
 onready var SaveFile = $SaveFile
@@ -414,7 +416,26 @@ func TickScreenshake():
 # USER INTERFACE
 # ===================================================================================================
 # ===================================================================================================
+# This is kind of bad
+# But there's no easy way to access enums from other files? That's kind of annoying
+func SpellToString(spell):
+	match spell:
+		SPELLS.WOOP:
+			return "WOOP"
+		SPELLS.DIG:
+			return "DIG"
+		_:
+			return "EMPTY"
+
 func UpdateUserInterface():
 	LevelLabel.text = "Level: " + str(level)
 	ScoreLabel.text = "Score: " + str(_playerScore)
+	
+	# Updating Spells
+	var spellBag = _playerReference._spellBag
+	SpellLabel.text = ""
+	
+	if spellBag.size() > 0:
+		for i in spellBag.size():
+			SpellLabel.text += str(i) + ": " + SpellToString(spellBag[i]) + "\n"
 	
