@@ -45,7 +45,7 @@ var _playerScore = 0
 var _spawnCounter = 0
 var _spawnRate = 0
 var numMonsters = 0
-var monsterBag = [birdMonsterObject, snakeMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
+var monsterBag = [birdMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
 
 # screen shake
@@ -273,6 +273,14 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 			_sfxPlayer.stream = treasureSfx
 			_sfxPlayer.play()
 			_playerScore += 1
+			
+			# checking to see if we should add spell
+			if _playerScore % 3 == 0:
+				var randomSpell = rng.randi_range(0, SPELLS.MAX - 1)
+				_playerReference.AddSpell(randomSpell)
+				_sfxPlayer.stream = spellSfx
+				_sfxPlayer.play()
+			
 			newTile._hasTreasure = false
 			UpdateUserInterface()
 

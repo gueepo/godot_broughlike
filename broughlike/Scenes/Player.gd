@@ -6,10 +6,6 @@ func StartMonster():
 	_is_player = true
 	_teleportCounter = 0
 	
-	# temp
-	_spellBag.append(0)
-	_spellBag.append(1)
-	
 func _process(delta):	
 	var movementDirection = Vector2()
 	if Input.is_action_just_pressed("ui_right"):

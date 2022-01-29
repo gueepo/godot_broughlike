@@ -2,6 +2,7 @@ extends Node2D
 
 # constants
 var MAX_HP = 6
+var MAX_SPELLS = 6
 
 # object references
 onready var _mainSceneReference = get_node("/root/MainScene")
@@ -146,3 +147,9 @@ func UseSpell(index):
 	_spellsRef.UseSpell(_spellBag[index])
 	_spellBag.remove(index)
 	_mainSceneReference.UpdateUserInterface()
+
+func AddSpell(spell):
+	if(_spellBag.size() > MAX_SPELLS):
+		return
+	
+	_spellBag.append(spell)
