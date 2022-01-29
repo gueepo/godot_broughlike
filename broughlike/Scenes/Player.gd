@@ -7,6 +7,7 @@ func StartMonster():
 	_teleportCounter = 0
 	
 	# temp
+	_spellBag.append(0)
 	_spellBag.append(1)
 	
 func _process(delta):	

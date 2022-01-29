@@ -1,5 +1,9 @@
 extends Node
 
+onready var _mainSceneReference = get_node("/root/MainScene")
+onready var _parentMonster = get_parent()
+var usedSpellSfx = load("res://assets/audio/spell.wav")
+
 enum SPELLS {
 	WOOP = 0, # move the monster to a random valid position
 	DIG = 1, # destroy all walls on map, heals 2 hp
@@ -21,13 +25,23 @@ func UseSpell(spell):
 #
 # -------------------------------------------
 func CastWoop():
-	print("cast woop")
-	pass
+	var newTile = _mainSceneReference.GetARandomPassableTile()
+	_parentMonster.MoveToTile(newTile)
+	_mainSceneReference.PlaySound(usedSpellSfx)
 
 # -------------------------------------------
 # DIG: Destroy all walls on map, heals 2 HP.
 #
 # -------------------------------------------
 func CastDig():
-	print("cast dig")
-	pass
+	
+	# removing all walls from the map!
+	for i in range(_mainSceneReference.TILES_ON_HORIZONTAL):
+		for j in range(_mainSceneReference.TILES_ON_VERTICAL):
+			if(not _mainSceneReference.map[i][j].is_passable and _mainSceneReference.IsInBounds(i, j)):
+				_mainSceneReference.map[i][j].Eat()
+	
+	# recovering 2 HP
+	_parentMonster.Heal(2)
+	
+	_mainSceneReference.PlaySound(usedSpellSfx)

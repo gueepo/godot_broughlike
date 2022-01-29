@@ -107,6 +107,9 @@ func MoveTo(position):
 			if (_mainSceneReference._exitPortal.position == position):
 				_mainSceneReference.LevelUp();
 				return
+				
+func MoveToTile(tile):
+	MoveTo(tile.position)
 
 # #########################
 # HP MANAGEMENT

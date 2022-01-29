@@ -8,9 +8,6 @@ var passableTiles = 0
 var rng = RandomNumberGenerator.new()
 var NUMBER_OF_TREASURE = 2
 
-# what is the main scene going to do?
-# 1. generate the map
-
 # loading tile scene "object"
 var tileObject = load("res://Scenes/Tile.tscn")
 var treasureObject = load("res://Scenes/Treasure.tscn")
@@ -179,14 +176,14 @@ func GetAdjacentNeighbors(x, y):
 	return adjacentTiles
 	
 func GetPassableAdjacentNeighbors(x, y):
-	var passableTiles = Array()
+	var allPassableTiles = Array()
 	var Neighbors = GetAdjacentNeighbors(x, y)
 
 	for tile in Neighbors:
 		if tile.is_passable:
-			passableTiles.append(tile)
+			allPassableTiles.append(tile)
 	
-	return passableTiles
+	return allPassableTiles
 	
 func GetAdjacentWalls(tile):
 	var walls = Array()
@@ -306,12 +303,16 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		print("monster being attacked is null, is there something wrong?")
 		return
 	
+	if(monsterAttacking == null):
+		print("why the hell a null monster is attacking? criminal: ", monsterAttacking)
+		return
+	
 	var tween = monsterAttacking.get_node("Tween")
 	var StartPosition = monsterAttacking.position
 	
 	# avoiding so monsters attack themselves
 	if(monsterAttacking._is_player != other._is_player):
-		other.DealDamage(1)
+		other.DealDamage(damage)
 		
 		if rng.randf() < 0.5:
 			_sfxPlayer.stream = hit1Sfx
@@ -352,7 +353,7 @@ func UpdateAllMonsters():
 # ===================================================================================================
 # ===================================================================================================
 func GenerateTreasures():
-	for i in range(NUMBER_OF_TREASURE):
+	for _i in range(NUMBER_OF_TREASURE):
 		GetARandomPassableTile()._hasTreasure = true
 
 # ===================================================================================================
@@ -377,7 +378,7 @@ func IsInBounds(x, y):
 	
 func GetARandomPassableTile():
 	var tile
-	for i in range(100):
+	for _i in range(100):
 		var x = rng.randi_range(0, TILES_ON_HORIZONTAL - 1)
 		var y = rng.randi_range(0, TILES_ON_VERTICAL - 1)
 		tile = map[y][x]
@@ -386,6 +387,10 @@ func GetARandomPassableTile():
 	
 func ManhattanDistance(p1, p2):
 	return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+	
+func PlaySound(sound):
+	_sfxPlayer.stream = newLevelSfx
+	_sfxPlayer.play()
 
 # ===================================================================================================
 # ===================================================================================================
