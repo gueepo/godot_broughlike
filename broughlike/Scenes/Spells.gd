@@ -16,10 +16,18 @@ func UseSpell(spell):
 		_:
 			print("spell not implemented")
 
+# -------------------------------------------
+# WOOP: Move this monster to a random valid position
+#
+# -------------------------------------------
 func CastWoop():
 	print("cast woop")
 	pass
 
+# -------------------------------------------
+# DIG: Destroy all walls on map, heals 2 HP.
+#
+# -------------------------------------------
 func CastDig():
 	print("cast dig")
 	pass
