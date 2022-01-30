@@ -3,7 +3,10 @@ extends Node
 onready var _mainSceneReference = get_node("/root/MainScene")
 onready var _parentMonster = get_parent()
 var usedSpellSfx = load("res://assets/audio/spell.wav")
+var explosionSfx = load("res://assets/audio/gameover.wav")
 const SPELLS = preload("res://Scenes/SpellEnum.gd")
+
+var explosionObject = load("res://Scenes/Explosion.tscn")
 
 
 
@@ -18,6 +21,8 @@ func UseSpell(spell):
 			CastDig()
 		SPELLS.MAELSTROM:
 			CastMaelstrom()
+		SPELLS.EXPLO:
+			CastExplosion()
 		_:
 			print("spell not implemented")
 
@@ -61,3 +66,43 @@ func CastMaelstrom():
 		m.MoveToTile(newTile)
 		m.UpdatePortalVisibility()
 		
+# -------------------------------------------
+# EXPLO: causes an explosion with the radius of 3
+#
+# -------------------------------------------
+func CastExplosion():
+	var t = _mainSceneReference.TILE_SIZE
+	var ExplosionDirections = Array()
+	
+	ExplosionDirections.append(Vector2(t, 0))
+	ExplosionDirections.append(Vector2(-t, 0))
+	ExplosionDirections.append(Vector2(0, t))
+	ExplosionDirections.append(Vector2(0, -t))
+	
+	ExplosionDirections.append(Vector2(t, t))
+	ExplosionDirections.append(Vector2(-t, -5))
+	ExplosionDirections.append(Vector2(-t, t))
+	ExplosionDirections.append(Vector2(t, -t))
+	
+	ExplosionDirections.append(Vector2(2*t, 0))
+	ExplosionDirections.append(Vector2(2*-t, 0))
+	ExplosionDirections.append(Vector2(0, 2*t))
+	ExplosionDirections.append(Vector2(0, 2*-t))
+	
+	var currentPosition = _parentMonster.position
+	var currentTile = _parentMonster.GetMyTile()
+	
+	_mainSceneReference._shakeAmount = 50
+	
+	for dir in ExplosionDirections:
+		_mainSceneReference.PlaySound(explosionSfx)
+		var explo = explosionObject.instance()
+		add_child(explo)
+		explo.position = currentPosition + dir
+		
+		# checking for damage
+		var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
+		if monster != null:
+			monster.DealDamage(3)
+			if monster._hp <= 0:
+				_mainSceneReference.DestroyMonster(monster)

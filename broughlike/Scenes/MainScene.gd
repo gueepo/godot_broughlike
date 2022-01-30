@@ -399,7 +399,8 @@ func ManhattanDistance(p1, p2):
 	return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 	
 func PlaySound(sound):
-	_sfxPlayer.stream = newLevelSfx
+	_sfxPlayer.stop()
+	_sfxPlayer.stream = sound
 	_sfxPlayer.play()
 
 # ===================================================================================================
@@ -434,6 +435,8 @@ func SpellToString(spell):
 			return "DIG"
 		SPELLS.MAELSTROM:
 			return "MAELSTROM"
+		SPELLS.EXPLO:
+			return "EXPLO"
 		_:
 			return "EMPTY"
 
