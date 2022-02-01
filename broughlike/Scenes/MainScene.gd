@@ -59,6 +59,9 @@ func _ready():
 	
 	print("MainScene node is ready!")
 	
+	# connecting nodes
+	_playerReference.connect("on_monster_used_spell", self, "UpdateUserInterface")
+	
 func _process(delta):
 	TickScreenshake()
 	pass

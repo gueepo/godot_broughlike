@@ -27,7 +27,7 @@ var _actual_position_y = 0
 # signal on_monster_moved
 # signal on_monster_attacked
 signal on_monster_hp_changed(old_hp, new_hp)
-# signal on_monster_used_spell
+signal on_monster_used_spell
 
 
 func _ready():
@@ -73,7 +73,7 @@ func UpdatePortalVisibility():
 		_portalSprite.visible = false
 		_animatedSprite.visible = true
 	
-func TakeTurn():	
+func TakeTurn():
 	var myTile = GetMyTile()
 	var playerTile = _mainSceneReference.GetPlayerTile()
 	var adjacentTiles = _mainSceneReference.GetPassableAdjacentNeighborsFromTile(myTile)
@@ -155,7 +155,7 @@ func UseSpell(index):
 	
 	_spellsRef.UseSpell(_spellBag[index])
 	_spellBag.remove(index)
-	_mainSceneReference.UpdateUserInterface()
+	emit_signal("on_monster_used_spell")
 
 func AddSpell(spell):
 	if(_spellBag.size() > MAX_SPELLS):
