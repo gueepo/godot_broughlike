@@ -65,7 +65,6 @@ func _process(delta):
 
 func StartLevel(playerHp):
 	_playerReference.SetHp(playerHp)
-	_playerReference.UpdateHealth()
 	_spawnRate = 15
 	_spawnCounter = _spawnRate
 	GenerateMap()

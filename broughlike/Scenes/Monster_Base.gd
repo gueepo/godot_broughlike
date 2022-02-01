@@ -23,8 +23,17 @@ var _amount_to_move
 var _actual_position_x = 0
 var _actual_position_y = 0
 
+# Monster Signals
+# signal on_monster_moved
+# signal on_monster_attacked
+signal on_monster_hp_changed(old_hp, new_hp)
+# signal on_monster_used_spell
+
 
 func _ready():
+	# connecting signals
+	self.connect("on_monster_hp_changed", self, "UpdateHealth")
+	
 	_amount_to_move = _mainSceneReference.TILE_SIZE
 	_animatedSprite.z_index = 5
 	_animatedSprite.position = Vector2(8, 8)
@@ -34,10 +43,10 @@ func _ready():
 	_portalSprite.playing = true
 	StartMonster()
 	UpdatePortalVisibility()
+	
 
 func InitializeMonster(hp):
-	_hp = hp
-	UpdateHealth()
+	SetHp(hp)
 	
 func GetMyTile():
 	return _mainSceneReference.GetTileMonsterIsAt(self)
@@ -117,19 +126,19 @@ func MoveToTile(tile):
 # #########################
 func SetHp(hp):
 	_hp = min(hp, MAX_HP)
+	emit_signal("on_monster_hp_changed", hp, hp)
 	
 func DealDamage(damage):
+	var old_hp = _hp
 	_hp -= damage
-	UpdateHealth()
+	emit_signal("on_monster_hp_changed", old_hp, _hp)
 	
 func Heal(healAmount):
-	if(_hp + healAmount > MAX_HP):
-		_hp = MAX_HP
-	else:
-		_hp += healAmount
-	UpdateHealth()
-	
-func UpdateHealth():
+	var old_hp = _hp
+	SetHp(_hp + healAmount)
+	emit_signal("on_monster_hp_changed", old_hp, _hp)
+
+func UpdateHealth(_old_hp, _new_hp):
 	for i in range(_hp):
 		hpSprites[i].visible = true
 		
