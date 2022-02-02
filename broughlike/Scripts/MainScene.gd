@@ -62,6 +62,8 @@ func _ready():
 	# connecting nodes
 	_playerReference.connect("on_monster_used_spell", self, "UpdateUserInterface")
 	_playerReference.connect("on_monster_attacked", self, "HandleCombat")
+	_playerReference.connect("on_player_finished_turn", self, "UpdateAllMonsters")
+	_playerReference.connect("on_player_finished_turn", self, "CheckIfPlayerGotTreasure")
 	
 func _process(delta):
 	TickScreenshake()
@@ -268,25 +270,24 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	var newTile = GetTileFromWorldPosition(newPosition)
 	oldTile._monsterOnTile = null
 	newTile._monsterOnTile = monster
-	
-	if(monster._is_player):
-		UpdateAllMonsters()
+
+func CheckIfPlayerGotTreasure():
+	var currentTile = GetTileMonsterIsAt(_playerReference)
+
+	if(currentTile._hasTreasure == true):
+		_sfxPlayer.stream = treasureSfx
+		_sfxPlayer.play()
+		_playerScore += 1
 		
-		# get treasure
-		if(newTile._hasTreasure == true):
-			_sfxPlayer.stream = treasureSfx
+		# checking to see if we should add spell
+		if _playerScore % 3 == 0:
+			var randomSpell = rng.randi_range(0, SPELLS.MAX - 1)
+			_playerReference.AddSpell(randomSpell)
+			_sfxPlayer.stream = spellSfx
 			_sfxPlayer.play()
-			_playerScore += 1
-			
-			# checking to see if we should add spell
-			if _playerScore % 3 == 0:
-				var randomSpell = rng.randi_range(0, SPELLS.MAX - 1)
-				_playerReference.AddSpell(randomSpell)
-				_sfxPlayer.stream = spellSfx
-				_sfxPlayer.play()
-			
-			newTile._hasTreasure = false
-			UpdateUserInterface()
+		
+		currentTile._hasTreasure = false
+		UpdateUserInterface()
 
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
@@ -311,6 +312,7 @@ func DestroyMonster(monster):
 		get_tree().change_scene("res://Scenes/MainMenu.tscn")
 	
 func HandleCombat(monsterAttacking, combatPosition, damage):
+	print("handling combat")
 	var other = GetMonsterAt(combatPosition)
 	
 	if other == null:
@@ -323,6 +325,9 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	
 	var tween = monsterAttacking.get_node("Tween")
 	var StartPosition = monsterAttacking.position
+
+	if(monsterAttacking._is_player):
+		other._is_stunned = true
 	
 	# Making this so monsters don't attack other monsters
 	if(monsterAttacking._is_player != other._is_player):
@@ -343,13 +348,10 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		
 		if(other._hp <= 0):
 			DestroyMonster(other)
-	
-	if(monsterAttacking._is_player):
-		other._is_stunned = true
-		UpdateAllMonsters()
 
 # let the monsters take their turns after player took their turn
 func UpdateAllMonsters():
+	print("updating all monsters")
 	for m in monstersOnScene:
 		if m != null:
 			m.Update()

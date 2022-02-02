@@ -1,5 +1,7 @@
 extends "res://Scripts/Monster_Base.gd"
 	
+signal on_player_finished_turn
+
 func StartMonster():
 	print("initializing player")
 	InitializeMonster(3)
@@ -35,3 +37,4 @@ func _process(delta):
 	var newPosition = self.position + movementDirection;
 	if(newPosition != self.position):
 		MoveTo(newPosition)
+		emit_signal("on_player_finished_turn")
