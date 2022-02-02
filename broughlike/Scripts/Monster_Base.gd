@@ -25,7 +25,7 @@ var _actual_position_y = 0
 
 # Monster Signals
 # signal on_monster_moved
-# signal on_monster_attacked
+signal on_monster_attacked
 signal on_monster_hp_changed(old_hp, new_hp)
 signal on_monster_used_spell
 

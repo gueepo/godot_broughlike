@@ -1,10 +1,10 @@
 [gd_scene load_steps=12 format=2]
 
-[ext_resource path="res://Scenes/Monster_Base.gd" type="Script" id=1]
+[ext_resource path="res://Scripts/Monster_Base.gd" type="Script" id=1]
 [ext_resource path="res://assets/aseprite/player.png" type="Texture" id=2]
 [ext_resource path="res://assets/spritesheet.png" type="Texture" id=3]
 [ext_resource path="res://assets/aseprite/portal.png" type="Texture" id=4]
-[ext_resource path="res://Scenes/Spells.gd" type="Script" id=5]
+[ext_resource path="res://Scripts/Spells.gd" type="Script" id=5]
 
 [sub_resource type="AtlasTexture" id=5]
 atlas = ExtResource( 4 )

@@ -4,7 +4,7 @@ onready var _mainSceneReference = get_node("/root/MainScene")
 onready var _parentMonster = get_parent()
 var usedSpellSfx = load("res://assets/audio/spell.wav")
 var explosionSfx = load("res://assets/audio/gameover.wav")
-const SPELLS = preload("res://Scenes/SpellEnum.gd")
+const SPELLS = preload("res://Scripts/SpellEnum.gd")
 
 var explosionObject = load("res://Scenes/Explosion.tscn")
 

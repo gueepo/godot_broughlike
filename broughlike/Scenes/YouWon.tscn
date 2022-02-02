@@ -2,7 +2,7 @@
 
 [ext_resource path="res://CustomTheme.tres" type="Theme" id=1]
 [ext_resource path="res://assets/fonts/MainMenuFont.tres" type="DynamicFont" id=2]
-[ext_resource path="res://Scenes/YouWon.gd" type="Script" id=3]
+[ext_resource path="res://Scripts/YouWon.gd" type="Script" id=3]
 
 [node name="Main Menu" type="Control"]
 anchor_right = 1.0

@@ -33,7 +33,7 @@ var treasureSfx = load("res://assets/audio/treasure.wav")
 onready var LevelLabel = $UI/LevelLabel
 onready var ScoreLabel = $UI/ScoreLabel 
 onready var SpellLabel = $UI/Spells
-const SPELLS = preload("res://Scenes/SpellEnum.gd")
+const SPELLS = preload("res://Scripts/SpellEnum.gd")
 
 # saving
 onready var SaveFile = $SaveFile

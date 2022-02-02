@@ -1,4 +1,4 @@
-extends "res://Scenes/Monster_Base.gd"
+extends "res://Scripts/Monster_Base.gd"
 	
 func StartMonster():
 	print("initializing player")
