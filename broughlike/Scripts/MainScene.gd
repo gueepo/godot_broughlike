@@ -20,6 +20,8 @@ var jesterMonsterObject = load("res://Scenes/Jester.tscn")
 onready var _playerReference = $Player
 onready var _exitPortal = $ExitPortal
 
+var explosionObject = load("res://Scenes/Explosion.tscn")
+
 # music/audio
 onready var _sfxPlayer = $SoundEffects
 var gameoverSfx = load("res://assets/audio/gameover.wav")
@@ -64,6 +66,7 @@ func _ready():
 	_playerReference.connect("on_monster_attacked", self, "HandleCombat")
 	_playerReference.connect("on_player_finished_turn", self, "UpdateAllMonsters")
 	_playerReference.connect("on_player_finished_turn", self, "CheckIfPlayerGotTreasure")
+	_playerReference.connect("on_monster_died", self, "GameOver")
 	
 func _process(delta):
 	TickScreenshake()
@@ -246,6 +249,7 @@ func SpawnMonster():
 		MonsterPosition = GetARandomPassableTile().position
 	
 	spawnedMonster.connect("on_monster_attacked", self, "HandleCombat")
+	spawnedMonster.connect("on_monster_died", self, "DestroyMonster")
 	spawnedMonster.MoveTo(MonsterPosition)
 
 # THIS FUNCTION IS WRONG!
@@ -300,16 +304,22 @@ func DestroyMonster(monster):
 	if index != -1:
 		monstersOnScene.remove(index)
 	monster.queue_free()
-	
-	if monster._is_player:
-		_sfxPlayer.stream = gameoverSfx
-		_sfxPlayer.play()
-		print("#todo: GAME OVER!")
-		print("score: ", _playerScore)
-		SaveFile.AddData(_playerScore, false)
+
+func GameOver(_player):
+	# todo: just block input and change player sprite
+	DestroyMonster(_player)
+
+	var explo = explosionObject.instance()
+	add_child(explo)
+	explo.position = _player.position
+
+	PlaySound(gameoverSfx)
+
+	print("score: ", _playerScore)
+	SaveFile.AddData(_playerScore, false)
 		
-		yield(get_tree().create_timer(2.0),"timeout")
-		get_tree().change_scene("res://Scenes/MainMenu.tscn")
+	yield(get_tree().create_timer(2.0),"timeout")
+	get_tree().change_scene("res://Scenes/MainMenu.tscn")
 	
 func HandleCombat(monsterAttacking, combatPosition, damage):
 	print("handling combat")
@@ -345,9 +355,6 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		tween.start()
 		yield(tween, "tween_completed")
 		monsterAttacking.position = StartPosition
-		
-		if(other._hp <= 0):
-			DestroyMonster(other)
 
 # let the monsters take their turns after player took their turn
 func UpdateAllMonsters():

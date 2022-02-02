@@ -28,6 +28,7 @@ var _actual_position_y = 0
 signal on_monster_attacked(monster_attacking, combat_position, damage)
 signal on_monster_hp_changed(old_hp, new_hp)
 signal on_monster_used_spell
+signal on_monster_died(monster)
 
 
 func _ready():
@@ -132,6 +133,9 @@ func DealDamage(damage):
 	var old_hp = _hp
 	_hp -= damage
 	emit_signal("on_monster_hp_changed", old_hp, _hp)
+
+	if(_hp <= 0):
+		emit_signal("on_monster_died", self)
 	
 func Heal(healAmount):
 	var old_hp = _hp

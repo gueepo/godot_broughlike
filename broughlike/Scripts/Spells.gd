@@ -104,5 +104,3 @@ func CastExplosion():
 		var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
 		if monster != null:
 			monster.DealDamage(3)
-			if monster._hp <= 0:
-				_mainSceneReference.DestroyMonster(monster)
