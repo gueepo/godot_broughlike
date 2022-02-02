@@ -99,7 +99,6 @@ func StartLevel(playerHp):
 	 
 	_playerReference.MoveTo(PlayerPosition)
 	_exitPortal.position = ExitPortalPosition
-	# todo: generate monsters
 	GenerateMonsters()
 	GenerateTreasures()
 	UpdateUserInterface()
@@ -149,8 +148,7 @@ func LevelUp():
 	
 	StartLevel(3 + (level - 1))
 	
-	_sfxPlayer.stream = newLevelSfx
-	_sfxPlayer.play()
+	PlaySound(newLevelSfx)
 
 # ===================================================================================================
 # ===================================================================================================
@@ -279,16 +277,14 @@ func CheckIfPlayerGotTreasure():
 	var currentTile = GetTileMonsterIsAt(_playerReference)
 
 	if(currentTile._hasTreasure == true):
-		_sfxPlayer.stream = treasureSfx
-		_sfxPlayer.play()
+		PlaySound(treasureSfx)
 		_playerScore += 1
 		
 		# checking to see if we should add spell
 		if _playerScore % 3 == 0:
 			var randomSpell = rng.randi_range(0, SPELLS.MAX - 1)
 			_playerReference.AddSpell(randomSpell)
-			_sfxPlayer.stream = spellSfx
-			_sfxPlayer.play()
+			PlaySound(spellSfx)
 		
 		currentTile._hasTreasure = false
 		UpdateUserInterface()
@@ -344,10 +340,9 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		other.DealDamage(damage)
 		
 		if rng.randf() < 0.5:
-			_sfxPlayer.stream = hit1Sfx
+			PlaySound(hit1Sfx)
 		else:
-			_sfxPlayer.stream = hit2Sfx
-		_sfxPlayer.play()
+			PlaySound(hit2Sfx)
 		_shakeAmount = 10
 		
 		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
@@ -384,7 +379,7 @@ func GenerateTreasures():
 # AUXILIARY FUNCTIONS
 # ===================================================================================================
 # ===================================================================================================
-func GetTileFromWorldPosition(position):
+func GetTileFromWorldPosition(position):	
 	var arrayPositionX = position.x / TILE_SIZE
 	var arrayPositionY = position.y / TILE_SIZE
 	var tile = map[arrayPositionY][arrayPositionX]

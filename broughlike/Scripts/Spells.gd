@@ -101,6 +101,7 @@ func CastExplosion():
 		explo.position = currentPosition + dir
 		
 		# checking for damage
-		var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
-		if monster != null:
-			monster.DealDamage(3)
+		if(_mainSceneReference.IsInBounds(explo.position.x, explo.position.y)):
+			var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
+			if monster != null:
+				monster.DealDamage(3)
