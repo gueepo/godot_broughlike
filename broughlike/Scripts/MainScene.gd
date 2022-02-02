@@ -61,6 +61,7 @@ func _ready():
 	
 	# connecting nodes
 	_playerReference.connect("on_monster_used_spell", self, "UpdateUserInterface")
+	_playerReference.connect("on_monster_attacked", self, "HandleCombat")
 	
 func _process(delta):
 	TickScreenshake()
@@ -242,6 +243,7 @@ func SpawnMonster():
 	while IsThereAMonsterAt(MonsterPosition):
 		MonsterPosition = GetARandomPassableTile().position
 	
+	spawnedMonster.connect("on_monster_attacked", self, "HandleCombat")
 	spawnedMonster.MoveTo(MonsterPosition)
 
 # THIS FUNCTION IS WRONG!
@@ -322,7 +324,7 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 	var tween = monsterAttacking.get_node("Tween")
 	var StartPosition = monsterAttacking.position
 	
-	# avoiding so monsters attack themselves
+	# Making this so monsters don't attack other monsters
 	if(monsterAttacking._is_player != other._is_player):
 		other.DealDamage(damage)
 		

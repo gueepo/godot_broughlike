@@ -25,7 +25,7 @@ var _actual_position_y = 0
 
 # Monster Signals
 # signal on_monster_moved
-signal on_monster_attacked
+signal on_monster_attacked(monster_attacking, combat_position, damage)
 signal on_monster_hp_changed(old_hp, new_hp)
 signal on_monster_used_spell
 
@@ -95,7 +95,7 @@ func MoveTo(position):
 	# 1. check to see if we will engage in combat
 	if _mainSceneReference.IsThereAMonsterAt(position):
 		_attacked_this_turn = true
-		_mainSceneReference.HandleCombat(self, position, 1)
+		emit_signal("on_monster_attacked", self, position, 1)
 		return
 		
 	# check if new position is valid
