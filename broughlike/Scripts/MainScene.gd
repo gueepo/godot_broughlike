@@ -62,6 +62,8 @@ func _ready():
 	print("MainScene node is ready!")
 	
 	# connecting nodes
+	_playerReference.connect("on_monster_moved", self, "MonsterMovedTo")
+	_playerReference.connect("on_monster_moved", self, "CheckIfPlayerIsOnPortal")
 	_playerReference.connect("on_monster_used_spell", self, "UpdateUserInterface")
 	_playerReference.connect("on_monster_attacked", self, "HandleCombat")
 	_playerReference.connect("on_player_finished_turn", self, "UpdateAllMonsters")
@@ -246,6 +248,7 @@ func SpawnMonster():
 	while IsThereAMonsterAt(MonsterPosition):
 		MonsterPosition = GetARandomPassableTile().position
 	
+	spawnedMonster.connect("on_monster_moved", self, "MonsterMovedTo")
 	spawnedMonster.connect("on_monster_attacked", self, "HandleCombat")
 	spawnedMonster.connect("on_monster_died", self, "DestroyMonster")
 	spawnedMonster.MoveTo(MonsterPosition)
@@ -289,6 +292,10 @@ func CheckIfPlayerGotTreasure():
 		currentTile._hasTreasure = false
 		UpdateUserInterface()
 
+func CheckIfPlayerIsOnPortal(_player, _old_position, _new_position):
+	if _exitPortal.position == _new_position:
+		LevelUp()
+
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
 	var tile = GetTileMonsterIsAt(monster)
@@ -318,7 +325,6 @@ func GameOver(_player):
 	get_tree().change_scene("res://Scenes/MainMenu.tscn")
 	
 func HandleCombat(monsterAttacking, combatPosition, damage):
-	print("handling combat")
 	var other = GetMonsterAt(combatPosition)
 	
 	if other == null:
@@ -336,7 +342,7 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 		other._is_stunned = true
 	
 	# Making this so monsters don't attack other monsters
-	if(monsterAttacking._is_player != other._is_player):
+	if(other != null and monsterAttacking._is_player != other._is_player):
 		other.DealDamage(damage)
 		
 		if rng.randf() < 0.5:
@@ -353,7 +359,6 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 
 # let the monsters take their turns after player took their turn
 func UpdateAllMonsters():
-	print("updating all monsters")
 	for m in monstersOnScene:
 		if m != null:
 			m.Update()

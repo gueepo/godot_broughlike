@@ -24,7 +24,7 @@ var _actual_position_x = 0
 var _actual_position_y = 0
 
 # Monster Signals
-# signal on_monster_moved
+signal on_monster_moved(monster, old_position, new_position)
 signal on_monster_attacked(monster_attacking, combat_position, damage)
 signal on_monster_hp_changed(old_hp, new_hp)
 signal on_monster_used_spell
@@ -92,35 +92,33 @@ func TakeTurn():
 	
 	MoveTo(positionToMove)
 
-func MoveTo(position):	
+func MoveTo(newPosition):	
 	# 1. check to see if we will engage in combat
-	if _mainSceneReference.IsThereAMonsterAt(position):
+	if _mainSceneReference.IsThereAMonsterAt(newPosition):
 		_attacked_this_turn = true
-		emit_signal("on_monster_attacked", self, position, 1)
-		return
+		emit_signal("on_monster_attacked", self, newPosition, 1)
+		return true
 		
 	# check if new position is valid
 	# if position is valid, is passable, and there is no combat, we just move
-	if(_mainSceneReference.is_valid_position(position)):
+	if(_mainSceneReference.is_valid_position(newPosition)):
 		var tween = get_node("Tween")
 		var oldPosition = self.position
-		_mainSceneReference.MonsterMovedTo(self, oldPosition, position)
+		# TODO: if I comment this out, it doesn't work, why?
+		# _mainSceneReference.MonsterMovedTo(self, oldPosition, newPosition)
 		
-		_actual_position_x = position.x
-		_actual_position_y = position.y
+		_actual_position_x = newPosition.x
+		_actual_position_y = newPosition.y
 		
-		tween.interpolate_property(self, "position", oldPosition, position, 0.075, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
+		tween.interpolate_property(self, "position", oldPosition, newPosition, 0.075, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
 		tween.start()
-		yield(tween, "tween_completed")
-		
-		# check if it is portal
-		if(self._is_player):
-			if (_mainSceneReference._exitPortal.position == position):
-				_mainSceneReference.LevelUp();
-				return
+		emit_signal("on_monster_moved", self, oldPosition, newPosition)
+		return true
+	
+	return false
 				
 func MoveToTile(tile):
-	MoveTo(tile.position)
+	return MoveTo(tile.position)
 
 # #########################
 # HP MANAGEMENT

@@ -91,8 +91,13 @@ func CastExplosion():
 	
 	var currentPosition = _parentMonster.position
 	var currentTile = _parentMonster.GetMyTile()
-	
 	_mainSceneReference._shakeAmount = 50
+
+	var NewExplosionDirections = Array()
+	for dir in ExplosionDirections:
+		if _mainSceneReference.IsInBounds(currentPosition.x + dir.x, currentPosition.y + dir.y):
+			NewExplosionDirections.append(dir)
+	
 	
 	for dir in ExplosionDirections:
 		_mainSceneReference.PlaySound(explosionSfx)
@@ -100,8 +105,6 @@ func CastExplosion():
 		add_child(explo)
 		explo.position = currentPosition + dir
 		
-		# checking for damage
-		if(_mainSceneReference.IsInBounds(explo.position.x, explo.position.y)):
-			var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
-			if monster != null:
-				monster.DealDamage(3)
+		var monster = _mainSceneReference.GetMonsterAt(currentPosition+dir)
+		if monster != null:
+			monster.DealDamage(3)

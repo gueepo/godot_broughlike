@@ -3,7 +3,6 @@ extends "res://Scripts/Monster_Base.gd"
 signal on_player_finished_turn
 
 func StartMonster():
-	print("initializing player")
 	InitializeMonster(3)
 	_is_player = true
 	_teleportCounter = 0
@@ -36,5 +35,6 @@ func _process(delta):
 	
 	var newPosition = self.position + movementDirection;
 	if(newPosition != self.position):
-		MoveTo(newPosition)
-		emit_signal("on_player_finished_turn")
+		var movedSuccesfully = MoveTo(newPosition)
+		if(movedSuccesfully):
+			emit_signal("on_player_finished_turn")
