@@ -1,9 +1,11 @@
 extends Node2D
 
+# #################################################
 # constants
 var MAX_HP = 6
 var MAX_SPELLS = 6
 
+# #################################################
 # object references
 onready var _mainSceneReference = get_node("/root/MainScene")
 onready var _animatedSprite = $AnimatedSprite
@@ -12,6 +14,7 @@ onready var hpSprites = [$HP/HP_1, $HP/HP_2, $HP/HP_3, $HP/HP_4, $HP/HP_5, $HP/H
 onready var _spellsRef = $Spells
 var _spellBag = Array()
 
+# #################################################
 # internal variables
 var _hp = 0
 var _is_player = false
@@ -23,6 +26,7 @@ var _amount_to_move
 var _actual_position_x = 0
 var _actual_position_y = 0
 
+# #################################################
 # Monster Signals
 signal on_monster_moved(monster, old_position, new_position)
 signal on_monster_attacked(monster_attacking, combat_position, damage)
@@ -31,8 +35,8 @@ signal on_monster_used_spell
 signal on_monster_died(monster)
 
 
+# #################################################
 func _ready():
-	# connecting signals
 	self.connect("on_monster_hp_changed", self, "UpdateHealth")
 	
 	_amount_to_move = _mainSceneReference.TILE_SIZE
@@ -42,20 +46,24 @@ func _ready():
 	_portalSprite.z_index = 10
 	_portalSprite.position = Vector2(8, 8)
 	_portalSprite.playing = true
+
 	StartMonster()
 	UpdatePortalVisibility()
 	
-
+# #################################################
 func InitializeMonster(hp):
 	SetHp(hp)
 	
+# #################################################
 func GetMyTile():
 	return _mainSceneReference.GetTileMonsterIsAt(self)
 
-# this is to be overrided by children
+# #################################################
+# "StartMonster()" is to be overrided by children
 func StartMonster():
 	pass
 
+# #################################################
 func Update():
 	if(_is_stunned || _teleportCounter > 0):
 		_teleportCounter -= 1
@@ -65,7 +73,8 @@ func Update():
 		
 	_attacked_this_turn = false
 	TakeTurn()
-	
+
+# #################################################
 func UpdatePortalVisibility():
 	if(_teleportCounter > 0):
 		_portalSprite.visible = true
@@ -74,6 +83,7 @@ func UpdatePortalVisibility():
 		_portalSprite.visible = false
 		_animatedSprite.visible = true
 	
+# #################################################
 func TakeTurn():
 	var myTile = GetMyTile()
 	var playerTile = _mainSceneReference.GetPlayerTile()
@@ -92,8 +102,9 @@ func TakeTurn():
 	
 	MoveTo(positionToMove)
 
+# #################################################
 func MoveTo(newPosition):	
-	# 1. check to see if we will engage in combat
+	# Checking if we will engage in combat
 	if _mainSceneReference.IsThereAMonsterAt(newPosition):
 		_attacked_this_turn = true
 		emit_signal("on_monster_attacked", self, newPosition, 1)
@@ -104,8 +115,6 @@ func MoveTo(newPosition):
 	if(_mainSceneReference.is_valid_position(newPosition)):
 		var tween = get_node("Tween")
 		var oldPosition = self.position
-		# TODO: if I comment this out, it doesn't work, why?
-		# _mainSceneReference.MonsterMovedTo(self, oldPosition, newPosition)
 		
 		_actual_position_x = newPosition.x
 		_actual_position_y = newPosition.y
@@ -116,17 +125,21 @@ func MoveTo(newPosition):
 		return true
 	
 	return false
-				
+
+# #################################################	
 func MoveToTile(tile):
 	return MoveTo(tile.position)
 
-# #########################
+# #################################################
+#
 # HP MANAGEMENT
-# #########################
+#
+# #################################################
 func SetHp(hp):
 	_hp = min(hp, MAX_HP)
 	emit_signal("on_monster_hp_changed", hp, hp)
-	
+
+# #################################################
 func DealDamage(damage):
 	var old_hp = _hp
 	_hp -= damage
@@ -134,12 +147,14 @@ func DealDamage(damage):
 
 	if(_hp <= 0):
 		emit_signal("on_monster_died", self)
-	
+
+# #################################################
 func Heal(healAmount):
 	var old_hp = _hp
 	SetHp(_hp + healAmount)
 	emit_signal("on_monster_hp_changed", old_hp, _hp)
 
+# #################################################
 func UpdateHealth(_old_hp, _new_hp):
 	for i in range(_hp):
 		hpSprites[i].visible = true
@@ -147,9 +162,11 @@ func UpdateHealth(_old_hp, _new_hp):
 	for i in range(_hp, MAX_HP):
 		hpSprites[i].visible = false
 
-# #########################
+# #################################################
+#
 # SPELL MANAGEMENT
-# #########################
+#
+# #################################################
 func UseSpell(index):
 	if index < 0 || index >= _spellBag.size():
 		print("unable to cast spell: " + str(index))
@@ -159,6 +176,7 @@ func UseSpell(index):
 	_spellBag.remove(index)
 	emit_signal("on_monster_used_spell")
 
+# #################################################
 func AddSpell(spell):
 	if(_spellBag.size() > MAX_SPELLS):
 		return

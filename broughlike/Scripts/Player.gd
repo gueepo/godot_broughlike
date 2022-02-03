@@ -3,7 +3,6 @@ extends "res://Scripts/Monster_Base.gd"
 signal on_player_finished_turn
 
 func StartMonster():
-	InitializeMonster(3)
 	_is_player = true
 	_teleportCounter = 0
 	

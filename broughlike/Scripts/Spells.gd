@@ -98,7 +98,6 @@ func CastExplosion():
 		if _mainSceneReference.IsInBounds(currentPosition.x + dir.x, currentPosition.y + dir.y):
 			NewExplosionDirections.append(dir)
 	
-	
 	for dir in ExplosionDirections:
 		_mainSceneReference.PlaySound(explosionSfx)
 		var explo = explosionObject.instance()

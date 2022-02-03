@@ -1,67 +1,71 @@
 extends Node
+const SPELLS = preload("res://Scripts/SpellEnum.gd")
 
+# #################################################
+# Constants
 var TILES_ON_HORIZONTAL = 9
 var TILES_ON_VERTICAL = 9
 var TILE_SIZE = 16
+var NUMBER_OF_TREASURE = 2
+var INITIAL_SPAWN_RATE = 15
+var INITIAL_PLAYER_HP = 3
 var map = Array()
 var passableTiles = 0
 var rng = RandomNumberGenerator.new()
-var NUMBER_OF_TREASURE = 2
 
-# loading tile scene "object"
+# #################################################
+# Loading Game Resources
 var tileObject = load("res://Scenes/Tile.tscn")
 var treasureObject = load("res://Scenes/Treasure.tscn")
-
 var birdMonsterObject = load("res://Scenes/Bird.tscn")
 var snakeMonsterObject = load("res://Scenes/Snake.tscn")
 var tankMonsterObject = load("res://Scenes/Tank.tscn")
 var eaterMonsterObject = load("res://Scenes/Eater.tscn")
 var jesterMonsterObject = load("res://Scenes/Jester.tscn")
-onready var _playerReference = $Player
-onready var _exitPortal = $ExitPortal
-
 var explosionObject = load("res://Scenes/Explosion.tscn")
 
-# music/audio
-onready var _sfxPlayer = $SoundEffects
+# #################################################
+# Music/Audio
 var gameoverSfx = load("res://assets/audio/gameover.wav")
 var hit1Sfx = load("res://assets/audio/hit1.wav")
 var hit2Sfx = load("res://assets/audio/hit2.wav")
 var newLevelSfx = load("res://assets/audio/newLevel.wav")
 var spellSfx = load("res://assets/audio/spell.wav")
 var treasureSfx = load("res://assets/audio/treasure.wav")
+onready var _sfxPlayer = $SoundEffects
 
+# #################################################
 # UI-related
 onready var LevelLabel = $UI/LevelLabel
 onready var ScoreLabel = $UI/ScoreLabel 
 onready var SpellLabel = $UI/Spells
-const SPELLS = preload("res://Scripts/SpellEnum.gd")
 
-# saving
+# #################################################
+# Saving
 onready var SaveFile = $SaveFile
 
-# ===============================================
+# #################################################
 # gameplay related variables
 var level = 1
 var _playerScore = 0
 var _spawnCounter = 0
 var _spawnRate = 0
 var numMonsters = 0
+var _shakeAmount = 0
 var monsterBag = [birdMonsterObject, tankMonsterObject, eaterMonsterObject, jesterMonsterObject]
 var monstersOnScene = Array()
+onready var _playerReference = $Player
+onready var _exitPortal = $ExitPortal
 
-# screen shake
-var _shakeAmount = 0
-
+# #################################################
 func _ready():
 	rng.randomize()
 	CreateMapArray()
-	StartLevel(3)
+	StartLevel(INITIAL_PLAYER_HP)
 	SaveFile.Load()
 	
 	print("MainScene node is ready!")
 	
-	# connecting nodes
 	_playerReference.connect("on_monster_moved", self, "MonsterMovedTo")
 	_playerReference.connect("on_monster_moved", self, "CheckIfPlayerIsOnPortal")
 	_playerReference.connect("on_monster_used_spell", self, "UpdateUserInterface")
@@ -69,14 +73,16 @@ func _ready():
 	_playerReference.connect("on_player_finished_turn", self, "UpdateAllMonsters")
 	_playerReference.connect("on_player_finished_turn", self, "CheckIfPlayerGotTreasure")
 	_playerReference.connect("on_monster_died", self, "GameOver")
-	
+
+# #################################################
 func _process(delta):
 	TickScreenshake()
 	pass
 
+# #################################################
 func StartLevel(playerHp):
-	_playerReference.SetHp(playerHp)
-	_spawnRate = 15
+	_playerReference.InitializeMonster(playerHp)
+	_spawnRate = INITIAL_SPAWN_RATE
 	_spawnCounter = _spawnRate
 	GenerateMap()
 	
@@ -105,6 +111,7 @@ func StartLevel(playerHp):
 	GenerateTreasures()
 	UpdateUserInterface()
  
+# #################################################
 # correctly create and resize the arrays for the map
 func CreateMapArray():
 	map.resize(TILES_ON_VERTICAL)
@@ -112,6 +119,7 @@ func CreateMapArray():
 		map[i] = Array()
 		map[i].resize(TILES_ON_HORIZONTAL)
 
+# #################################################
 # generate map and creates each individual node
 func GenerateMap():
 	passableTiles = 0
@@ -130,12 +138,14 @@ func GenerateMap():
 			tile.position = Vector2(j * TILE_SIZE, i * TILE_SIZE)
 			map[i][j] = tile
 
+# #################################################
 # deletes all tile nodes
 func CleanMap():
 	for i in range(TILES_ON_VERTICAL):
 		for j in range(TILES_ON_HORIZONTAL):
 			map[i][j].queue_free()
 
+# #################################################
 # This is called when the player steps on the exit portal
 func LevelUp():	
 	level += 1
@@ -147,9 +157,7 @@ func LevelUp():
 		monstersOnScene[i].queue_free()
 	monstersOnScene.clear()
 	CleanMap()
-	
-	StartLevel(3 + (level - 1))
-	
+	StartLevel(INITIAL_PLAYER_HP + (level - 1))
 	PlaySound(newLevelSfx)
 
 # ===================================================================================================
@@ -163,6 +171,7 @@ func GetTileNeighbor(x, y, dx, dy):
 		return map[y+dy][x+dx]
 	return null
 
+# #################################################
 # gets all adjacent neighbors of the tile on the given position
 func GetAdjacentNeighbors(x, y):
 	var adjacentTiles = Array()
@@ -185,6 +194,7 @@ func GetAdjacentNeighbors(x, y):
 		
 	return adjacentTiles
 	
+# #################################################
 func GetPassableAdjacentNeighbors(x, y):
 	var allPassableTiles = Array()
 	var Neighbors = GetAdjacentNeighbors(x, y)
@@ -195,6 +205,7 @@ func GetPassableAdjacentNeighbors(x, y):
 	
 	return allPassableTiles
 	
+# #################################################
 func GetAdjacentWalls(tile):
 	var walls = Array()
 	var neighbors = GetAdjacentNeighbors(tile._internal_x, tile._internal_y)
@@ -205,9 +216,11 @@ func GetAdjacentWalls(tile):
 			
 	return walls
 	
+# #################################################
 func GetPassableAdjacentNeighborsFromTile(tile):
 	return GetPassableAdjacentNeighbors(tile._internal_x, tile._internal_y)
 
+# #################################################
 # use a flood-fill approach to try to connect all tiles
 func GetConnectedTiles():
 	var connectedTiles = Array()
@@ -238,6 +251,7 @@ func GenerateMonsters():
 	for i in numMonsters:
 		SpawnMonster()
 
+# #################################################
 # spawn a monster on a random passable tile
 func SpawnMonster():
 	var monster = monsterBag[rng.randi_range(0, monsterBag.size() - 1)]
@@ -253,22 +267,25 @@ func SpawnMonster():
 	spawnedMonster.connect("on_monster_died", self, "DestroyMonster")
 	spawnedMonster.MoveTo(MonsterPosition)
 
-# THIS FUNCTION IS WRONG!
-# because when we add tween "monster.position" is not always the true position
+# #################################################
 func GetTileMonsterIsAt(monster):
 	return GetTileFromWorldPosition(Vector2(monster._actual_position_x, monster._actual_position_y))
 
+# #################################################
 func GetMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
 	return t._monsterOnTile
 
+# #################################################
 func GetPlayerTile():
 	return GetTileFromWorldPosition(Vector2(_playerReference._actual_position_x, _playerReference._actual_position_y))
 	
+# #################################################
 func IsThereAMonsterAt(position):
 	var t = GetTileFromWorldPosition(position)
 	return t._monsterOnTile != null
 	
+# #################################################
 # update tiles when a monster moves from/to somewhere
 func MonsterMovedTo(monster, oldPosition, newPosition):
 	var oldTile = GetTileFromWorldPosition(oldPosition)
@@ -276,6 +293,7 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	oldTile._monsterOnTile = null
 	newTile._monsterOnTile = monster
 
+# #################################################
 func CheckIfPlayerGotTreasure():
 	var currentTile = GetTileMonsterIsAt(_playerReference)
 
@@ -292,15 +310,17 @@ func CheckIfPlayerGotTreasure():
 		currentTile._hasTreasure = false
 		UpdateUserInterface()
 
+# #################################################
 func CheckIfPlayerIsOnPortal(_player, _old_position, _new_position):
 	if _exitPortal.position == _new_position:
 		LevelUp()
 
+# #################################################
 # destroy a node monster, clean its tile and remove it from the monster array
 func DestroyMonster(monster):
 	var tile = GetTileMonsterIsAt(monster)
 	if(tile.position != monster.position):
-		print("tile position and monster position are different - ruh-roh")
+		print("tile position and monster position are different - ruh-roh", "monster: ", monster, " tile: ", tile.position, " monster: ", monster.position)
 	tile._monsterOnTile = null
 	
 	var index = monstersOnScene.find(monster)
@@ -308,8 +328,8 @@ func DestroyMonster(monster):
 		monstersOnScene.remove(index)
 	monster.queue_free()
 
+# #################################################
 func GameOver(_player):
-	# todo: just block input and change player sprite
 	DestroyMonster(_player)
 
 	var explo = explosionObject.instance()
@@ -323,7 +343,8 @@ func GameOver(_player):
 		
 	yield(get_tree().create_timer(2.0),"timeout")
 	get_tree().change_scene("res://Scenes/MainMenu.tscn")
-	
+
+# #################################################
 func HandleCombat(monsterAttacking, combatPosition, damage):
 	var other = GetMonsterAt(combatPosition)
 	
@@ -351,12 +372,12 @@ func HandleCombat(monsterAttacking, combatPosition, damage):
 			PlaySound(hit2Sfx)
 		_shakeAmount = 10
 		
-		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
-		tween.interpolate_property(monsterAttacking, "position", combatPosition, StartPosition, 0.035, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)	
+		tween.interpolate_property(monsterAttacking, "position", StartPosition, combatPosition, 0.075, Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
 		tween.start()
 		yield(tween, "tween_completed")
 		monsterAttacking.position = StartPosition
 
+# #################################################
 # let the monsters take their turns after player took their turn
 func UpdateAllMonsters():
 	for m in monstersOnScene:
@@ -390,15 +411,18 @@ func GetTileFromWorldPosition(position):
 	var tile = map[arrayPositionY][arrayPositionX]
 	return tile
 	
+# #################################################
 func is_valid_position(position):
 	var arrayPositionX = position.x / TILE_SIZE
 	var arrayPositionY = position.y / TILE_SIZE
 	var tile = GetTileFromWorldPosition(position)
 	return IsInBounds(arrayPositionX, arrayPositionY) && tile.is_passable && (tile._monsterOnTile == null)
 	
+# #################################################
 func IsInBounds(x, y):
 	return x > 0 && y > 0 && x < TILES_ON_HORIZONTAL - 1 && y < TILES_ON_VERTICAL - 1
 	
+# #################################################
 func GetARandomPassableTile():
 	var tile
 	for _i in range(100):
@@ -408,9 +432,11 @@ func GetARandomPassableTile():
 		if(tile.is_passable && tile._monsterOnTile == null):
 			return tile
 	
+# #################################################
 func ManhattanDistance(p1, p2):
 	return abs(p1.x - p2.x) + abs(p1.y - p2.y)
-	
+
+# #################################################
 func PlaySound(sound):
 	_sfxPlayer.stop()
 	_sfxPlayer.stream = sound
@@ -453,6 +479,7 @@ func SpellToString(spell):
 		_:
 			return "EMPTY"
 
+# #################################################
 func UpdateUserInterface():
 	LevelLabel.text = "Level: " + str(level)
 	ScoreLabel.text = "Score: " + str(_playerScore)
