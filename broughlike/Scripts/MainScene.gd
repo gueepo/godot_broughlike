@@ -126,6 +126,7 @@ func GenerateMap():
 	for i in range(TILES_ON_VERTICAL):
 		for j in range(TILES_ON_HORIZONTAL):
 			var tile = tileObject.instance()
+			tile._monsterOnTile = null
 			
 			var myRandom = rng.randf_range(0.0, 1.0)
 			if myRandom < 0.3 or not IsInBounds(j, i):
@@ -291,6 +292,12 @@ func MonsterMovedTo(monster, oldPosition, newPosition):
 	var oldTile = GetTileFromWorldPosition(oldPosition)
 	var newTile = GetTileFromWorldPosition(newPosition)
 	oldTile._monsterOnTile = null
+	
+	if monster._is_player and _exitPortal.position == newPosition:
+		print("[monster moved to] player moved into the portal!")
+		newTile._monsterOnTile = null
+		return
+	
 	newTile._monsterOnTile = monster
 
 # #################################################
